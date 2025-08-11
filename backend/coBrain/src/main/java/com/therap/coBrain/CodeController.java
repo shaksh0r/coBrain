@@ -35,7 +35,7 @@ public class CodeController {
 
         if ("insert".equals(op) && value != null) {
             // Replace the entire document content
-            crdtDocumentManager.setDocument(value);
+            crdtDocumentManager.insertText(index, value);
         } else if ("delete".equals(op)) {
             int length = node.has("length") ? node.get("length").asInt() : 1;
             crdtDocumentManager.deleteText(index, length);

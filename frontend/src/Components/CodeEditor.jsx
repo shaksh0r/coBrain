@@ -27,15 +27,54 @@ const CodeEditor = () => {
 
     // Handler for editor change
     const handleEditorChange = (newValue, event) => {
-        // For now, send the whole new value as an 'insert' op at index 0 (replace all)
-        // In a real app, you would diff and send only the change
+        const oldValue = value;
         setValue(newValue);
-        const op = {
-            op: "insert",
-            index: 0,
-            value: newValue
-        };
-        sendCode(stompClientRef.current, JSON.stringify(op));
+
+        // If values are equal, do nothing
+        if (newValue === oldValue) return;
+
+        // Find first point of difference
+        let start = 0;
+        while (start < newValue.length && start < oldValue.length && newValue[start] === oldValue[start]) {
+            start++;
+        }
+
+        // Find last point of difference
+        let endNew = newValue.length - 1;
+        let endOld = oldValue.length - 1;
+        while (endNew >= start && endOld >= start && newValue[endNew] === oldValue[endOld]) {
+            endNew--;
+            endOld--;
+        }
+
+        if (newValue.length > oldValue.length) {
+            // Insertion
+            const inserted = newValue.slice(start, endNew + 1);
+            const op = {
+                op: "insert",
+                index: start,
+                value: inserted
+            };
+            sendCode(stompClientRef.current, JSON.stringify(op));
+        } else if (newValue.length < oldValue.length) {
+            // Deletion
+            const op = {
+                op: "delete",
+                index: start,
+                length: endOld - start + 1
+            };
+            sendCode(stompClientRef.current, JSON.stringify(op));
+        } else {
+            // Replacement (same length, but different content)
+            const replaced = newValue.slice(start, endNew + 1);
+            const op = {
+                op: "replace",
+                index: start,
+                length: endOld - start + 1,
+                value: replaced
+            };
+            sendCode(stompClientRef.current, JSON.stringify(op));
+        }
     };
 
     return (
