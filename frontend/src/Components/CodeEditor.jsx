@@ -10,7 +10,9 @@ const CodeEditor = () => {
         editorRef.current = editor;
         editor.focus();
     }
-    const str = "import React from 'react'\nprint('Hello, World')\n";
+
+    const str = "// Welcome to coBrain!!"
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div style={{
@@ -27,7 +29,7 @@ const CodeEditor = () => {
                 <Editor
                     height="100%"
                     theme="vs-dark"
-                    defaultLanguage="python"
+                    defaultLanguage="java"
                     defaultValue={str}
                     onMount={onMount}
                     value={value}

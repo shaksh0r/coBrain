@@ -8,6 +8,7 @@ public class CoBrainApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CoBrainApplication.class, args);
+		System.out.println("CoBrain Application Started Successfully");
 	}
 
 }
