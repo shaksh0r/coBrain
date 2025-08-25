@@ -1,13 +1,13 @@
-package com.therap.coBrain;
+package com.sandox.sandbox_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CoBrainApplication {
+public class SandboxServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CoBrainApplication.class, args);
+		SpringApplication.run(SandboxServiceApplication.class, args);
 	}
 
 }
