@@ -3,11 +3,10 @@ package com.sandox.sandbox_service.controller;
 import com.sandox.sandbox_service.service.CodeExecution;
 import com.sandox.sandbox_service.service.ContainerCreation;
 import com.sandox.sandbox_service.service.ContainerManagement;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -39,13 +38,32 @@ public class ContainerController {
         return "Container Name: " + containerName;
     }
 
-    @GetMapping("/copy/{userID}")
-    public void copyContainer(@PathVariable String userID) throws IOException, InterruptedException {
+    @PostMapping("/run")
+    public void RUN(@RequestBody Map<String,String> request) throws IOException, InterruptedException {
+        String userID = request.get("userID");
+        String directoryPath = request.get("directoryPath");
+        String sourcePath =  request.get("sourcePath");
+        String language =  request.get("language");
+
+        copyContainer(userID,directoryPath);
+        System.out.println("copy done");
+        compile(userID,sourcePath,language);
+        System.out.println("compilation done");
+        execute(userID);
+        System.out.println("execute done");
+    }
+
+    public void copyContainer(String userID,String directoryPath) throws IOException, InterruptedException {
         String containerName =  this.containerManagement.getContainerName(userID);
         System.out.println("Copying Container Name: " + containerName);
-        String source = "sandbox-service/src/main/java/com/sandox/sandbox_service/test.cpp";
+        //String source = "sandbox-service/src/main/java/com/sandox/sandbox_service/test.cpp";
 
-        codeExecution.copyDirectory(source,containerName);
+        codeExecution.copyDirectory(directoryPath,containerName);
+    }
+
+    @GetMapping("/check")
+    public void checkMaps() throws IOException, InterruptedException {
+        codeExecution.check();
     }
 
     @GetMapping("/deallocate")
@@ -74,9 +92,14 @@ public class ContainerController {
         containerCreation.cleanContainers();
     }
 
-    @GetMapping("/compile/{userID}")
-    public String compile(@PathVariable String userID) throws IOException, InterruptedException {
-        return this.codeExecution.compile(userID,"test.cpp","cpp");
+    public void compile(String userID,String sourcePath,String language) throws IOException, InterruptedException {
+         this.codeExecution.compile(userID,sourcePath,language);
     };
+
+
+    public String execute(String userID) throws IOException, InterruptedException {
+        codeExecution.execute(userID);
+        return "Execution started for user: " + userID;
+    }
 
 }
