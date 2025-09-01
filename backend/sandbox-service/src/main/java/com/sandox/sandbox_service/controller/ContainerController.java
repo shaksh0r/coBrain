@@ -3,6 +3,7 @@ package com.sandox.sandbox_service.controller;
 import com.sandox.sandbox_service.service.CodeExecution;
 import com.sandox.sandbox_service.service.ContainerCreation;
 import com.sandox.sandbox_service.service.ContainerManagement;
+import com.sandox.sandbox_service.service.GdbDebugger;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -14,9 +15,10 @@ public class ContainerController {
     private ContainerCreation containerCreation;
     private ContainerManagement containerManagement;
     private CodeExecution codeExecution;
+    private GdbDebugger gdbDebugger;
     private String userID;
 
-    public ContainerController(ContainerCreation containerCreation, ContainerManagement containerManagement,CodeExecution codeExecution) throws IOException, InterruptedException {
+    public ContainerController(ContainerCreation containerCreation, ContainerManagement containerManagement,CodeExecution codeExecution,GdbDebugger gdbDebugger) throws IOException, InterruptedException {
         this.containerCreation = containerCreation;
         this.containerCreation.setLanguage("cpp");
         this.containerCreation.buildContainers();
@@ -29,6 +31,10 @@ public class ContainerController {
 
         this.codeExecution = codeExecution;
         this.codeExecution.setContainerAssignment(this.containerManagement.getContainerAssignment());
+
+        this.gdbDebugger = gdbDebugger;
+        this.gdbDebugger.setContainerAssignment(this.containerManagement.getContainerAssignment());
+
     }
 
     @GetMapping("/getContainer/{userID}")
@@ -41,64 +47,35 @@ public class ContainerController {
     @PostMapping("/run")
     public void RUN(@RequestBody Map<String,String> request) throws IOException, InterruptedException {
         String userID = request.get("userID");
-        String directoryPath = request.get("directoryPath");
-        String sourcePath =  request.get("sourcePath");
-        String language =  request.get("language");
 
-        copyContainer(userID,directoryPath);
-        System.out.println("copy done");
-        compile(userID,sourcePath,language);
-        System.out.println("compilation done");
         execute(userID);
         System.out.println("execute done");
     }
 
-    public void copyContainer(String userID,String directoryPath) throws IOException, InterruptedException {
+    @PostMapping("/copy")
+    public void copyContainer(@RequestBody Map<String,String> request) throws IOException, InterruptedException {
+        String userID = request.get("userID");
+        String directoryPath = request.get("directoryPath");
         String containerName =  this.containerManagement.getContainerName(userID);
         System.out.println("Copying Container Name: " + containerName);
         //String source = "sandbox-service/src/main/java/com/sandox/sandbox_service/test.cpp";
 
-        codeExecution.copyDirectory(directoryPath,containerName);
-    }
-
-    @GetMapping("/check")
-    public void checkMaps() throws IOException, InterruptedException {
-        codeExecution.check();
-    }
-
-    @GetMapping("/deallocate")
-    public void deallocateContainer(){
-        this.containerManagement.deallocateContainer(this.userID);
-    }
-
-    @GetMapping("/pause")
-    public void pauseContainer() throws IOException, InterruptedException {
-        this.containerManagement.pauseContainer(this.userID);
-    }
-
-    @GetMapping("/resume")
-    public void resumeContainer() throws IOException, InterruptedException {
-        this.containerManagement.resumeContainer(this.userID);
-    }
-
-    @GetMapping("/getID")
-    public String getID(){
-        return this.userID;
+        gdbDebugger.copyDirectory(directoryPath,containerName);
     }
 
 
-    @GetMapping("/clean")
-    public void cleanContainers() throws IOException, InterruptedException {
-        containerCreation.cleanContainers();
-    }
-
-    public void compile(String userID,String sourcePath,String language) throws IOException, InterruptedException {
-         this.codeExecution.compile(userID,sourcePath,language);
+    @PostMapping("/compile")
+    public void compile(@RequestBody Map<String,String> request) throws IOException, InterruptedException {
+        String userID = request.get("userID");
+        String sourcePath = request.get("sourcePath");
+        String language = request.get("language");
+        System.out.println("Compiling Source Path: " + sourcePath);
+        this.gdbDebugger.compile(userID,sourcePath,language);
     };
 
 
     public String execute(String userID) throws IOException, InterruptedException {
-        codeExecution.execute(userID);
+        gdbDebugger.debug(userID);
         return "Execution started for user: " + userID;
     }
 
