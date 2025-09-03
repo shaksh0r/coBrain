@@ -1,14 +1,22 @@
 package com.therap.coBrain;
 
+import java.util.Optional;
+
 import org.automerge.Document;
 import org.automerge.ObjectId;
 import org.automerge.ObjectType;
 import org.automerge.Transaction;
 import org.springframework.stereotype.Component;
-import java.util.Optional;
 
 @Component
 public class CRDTDocumentManager {
+    // Replace text at a given index and length with a new value
+    public synchronized void replaceText(int index, int length, String value) {
+        try (Transaction tx = doc.startTransaction()) {
+            tx.spliceText(this.textId, index, length, value);
+            tx.commit();
+        }
+    }
     private final Document doc;
     private final ObjectId textId;
 

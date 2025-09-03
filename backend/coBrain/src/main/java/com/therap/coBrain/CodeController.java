@@ -2,11 +2,12 @@ package com.therap.coBrain;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,15 +35,18 @@ public class CodeController {
         String value = node.has("value") ? node.get("value").asText() : null;
 
         if ("insert".equals(op) && value != null) {
-            // Replace the entire document content
             crdtDocumentManager.insertText(index, value);
         } else if ("delete".equals(op)) {
             int length = node.has("length") ? node.get("length").asInt() : 1;
             crdtDocumentManager.deleteText(index, length);
+        } else if ("replace".equals(op) && value != null) {
+            int length = node.has("length") ? node.get("length").asInt() : 1;
+            crdtDocumentManager.replaceText(index, length, value);
         }
 
-        // Broadcast the operation to all clients
-        return crdtDocumentManager.getDocument();
+        // Broadcast the operation to all clients (forward the original message)
+        System.out.println("Broadcasting message: " + message);
+        return message;
     }
 
     // Endpoint to get the current document state (for new clients)
