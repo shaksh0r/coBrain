@@ -2,6 +2,7 @@ import { executeCode } from '../API/api'; // Adjust the path if needed
 
 const SendBack = ({ editorRef, language }) => {
   const runCode = async () => {
+    console.log("Running Code")
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode) return;
     try {
