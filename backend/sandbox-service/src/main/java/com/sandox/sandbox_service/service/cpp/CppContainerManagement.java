@@ -1,4 +1,4 @@
-package com.sandox.sandbox_service.service;
+package com.sandox.sandbox_service.service.cpp;
 
 import org.springframework.stereotype.Service;
 
@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class ContainerManagement {
+public class CppContainerManagement {
     private Map<String, String> containerAssignment; // < userID, containerID >
     private Map<String, String> containerStatus; // < containerID, status >
 
-    public ContainerManagement() {
+    public CppContainerManagement() {
         this.containerAssignment = new HashMap<String, String>();
     }
 

@@ -15,11 +15,8 @@ public class ContainerCreation {
     public ContainerCreation() {
         this.containerCount = 4;
     }
-    public void setLanguage(String language) {
-        this.language = language;
-    }
 
-    public Map<String,String> getContainerStatus(){
+    public Map<String,String> getContainerStatus(String language){
         Map<String,String> containerStatus = new HashMap<String,String>();
 
         if(language.equals("cpp")){
@@ -35,24 +32,19 @@ public class ContainerCreation {
         }
 
         return containerStatus;
-
     }
 
     public void runContainers() throws IOException, InterruptedException {
         String cppImageBase = "cpp_";
         String javaImageBase = "java_";
 
-        if(language.equals("java")){
-            for(int i = 0; i<this.containerCount; i++){
-                String containerName = javaImageBase + (i+1);
-                new ProcessBuilder("docker","run","-d","--name",containerName,"java:latest","tail","-f","/dev/null").start();
-            }
+        for(int i = 0; i<this.containerCount; i++){
+            String containerName = javaImageBase + (i+1);
+            new ProcessBuilder("docker","run","-d","--name",containerName,"java:latest","tail","-f","/dev/null").start();
         }
-        else if(language.equals("cpp")){
-            for(int i = 0; i<this.containerCount; i++){
-                String containerName = cppImageBase + (i+1);
-               new ProcessBuilder("docker","run","-d","--name",containerName,"cpp:latest","tail","-f","/dev/null").start();
-            }
+        for(int i = 0; i<this.containerCount; i++){
+            String containerName = cppImageBase + (i+1);
+            new ProcessBuilder("docker","run","-d","--name",containerName,"cpp:latest","tail","-f","/dev/null").start();
         }
     }
 
@@ -66,12 +58,9 @@ public class ContainerCreation {
         String javaImageName = "java:latest";
         String dockerDirectory = "sandbox-service/src/main/java/com/sandox/sandbox_service/Dockerfiles";
 
-        System.out.println("Here");
-        if(language.equals("cpp")){
-            new ProcessBuilder("docker","build","-t",cppImageName,dockerDirectory+"/cpp").start().waitFor();
-        }else if(language.equals("java")){
-            new ProcessBuilder("docker","build","-t",javaImageName,dockerDirectory+"/java").start().waitFor();
-        }
+        new ProcessBuilder("docker","build","-t",cppImageName,dockerDirectory+"/cpp").start().waitFor();
+
+        new ProcessBuilder("docker","build","-t",javaImageName,dockerDirectory+"/java").start().waitFor();
     }
 
 }
