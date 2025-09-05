@@ -7,6 +7,8 @@
         <option value="$PROJECT_DIR$/datapassing/pom.xml" />
         <option value="$PROJECT_DIR$/sandbox-service/pom.xml" />
         <option value="$PROJECT_DIR$/test/pom.xml" />
+        <option value="$PROJECT_DIR$/demo/pom.xml" />
+        <option value="$PROJECT_DIR$/auth/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
