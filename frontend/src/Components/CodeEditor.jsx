@@ -180,14 +180,6 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
                 <CopyButton sessionID={sessionID} language={language} getEditorContent={getEditorContent} />
             </div>
             <div style={{ height: '95%' }}>
-                <style>
-                    {`
-                    .monaco-editor,
-                    .monaco-editor-background {
-                        background-color: #1e1e1e !important;
-                    }
-                    `}
-                </style>
                 <Editor
                     height="100%"
                     theme="vs-dark"
