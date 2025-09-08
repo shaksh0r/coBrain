@@ -1,12 +1,26 @@
 import React from 'react';
+import { useIDEContext } from '../../Context/IDEContext';
 import { getContainer } from '../../API/restapi';
 
-const ContainerButton = ({ sessionID, language }) => {
+const ContainerButton = () => {
+    const { sessionID, language } = useIDEContext();
+
+    const handleClick = async () => {
+        await getContainer(sessionID, language);
+    };
+
     return (
-        <button onClick={() => getContainer(sessionID, language).then(response => {
-            console.log(response);
-        })}>
-            Get Container
+        <button
+            onClick={handleClick}
+            style={{
+                background: '#333',
+                color: 'white',
+                border: 'none',
+                padding: '4px 8px',
+                marginRight: '8px',
+            }}
+        >
+            Run Container
         </button>
     );
 };

@@ -1,32 +1,41 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import { connectWebSocket, disconnectWebSocket, sendCode } from '../API/crdtwebsocket';
+import { connectWebSocket, disconnectWebSocket, sendCode, requestDocumentState } from '../API/crdtwebsocket';
 import CopyButton from './buttons/CopyButton';
 import ContainerButton from './buttons/ContainerButton';
+import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/CodeEditor.css';
 
-const CodeEditor = ({ clientIdRef, sessionID, language }) => {
+const CodeEditor = () => {
+    const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId, openFile, stompClientRef, clientIdRef, language } = useIDEContext();
     const editorRef = useRef(null);
-    const stompClientRef = useRef(null);
     const isProgrammaticChange = useRef(false);
     const decorationsRef = useRef([]);
     const [breakpoints, setBreakpoints] = useState(new Set());
 
     useEffect(() => {
-        console.log("Connecting to WebSocket...");
         const client = connectWebSocket(
-            handleRemoteOperation,
-            (initialState) => {
-                console.log("Received initial state:", initialState);
-                if (editorRef.current) {
+            (fileID, message) => {
+                if (Array.from(fileNameToFileId.values()).includes(fileID)) {
+                    if (fileID === activeFileId) {
+                        handleRemoteOperation(fileID, message);
+                    } else {
+                        console.log('Operation ignored - fileID does not match activeFileId:', fileID, activeFileId);
+                    }
+                } else {
+                    console.warn('Operation received for unknown fileID:', fileID);
+                }
+            },
+            (fileID, content) => {
+                if (Array.from(fileNameToFileId.values()).includes(fileID)) {
                     const model = editorRef.current.getModel();
                     if (model) {
                         isProgrammaticChange.current = true;
                         model.applyEdits([
                             {
                                 range: model.getFullModelRange(),
-                                text: initialState || '',
+                                text: content || '',
                                 forceMoveMarkers: true,
                             },
                         ]);
@@ -34,22 +43,59 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
                     }
                 }
             },
-            (error) => {
-                console.error("WebSocket connection error:", error);
-            }
+            (fileID, message) => {
+                const response = JSON.parse(message.body);
+                const fileName = response.fileName;
+                setFileNameToFileId((prev) => new Map(prev).set(fileName, fileID));
+                setActiveFileId(fileID);
+                requestDocumentState(stompClientRef.current, sessionID, fileID);
+            },
+            clientIdRef
         );
         stompClientRef.current = client;
-
         return () => {
             console.log("Disconnecting WebSocket...");
             disconnectWebSocket(client);
         };
-    }, []);
+    }, [sessionID, setFileNameToFileId, setActiveFileId, fileNameToFileId]);
+
+    const handleTabSwitch = (fileID) => {
+        clearBreakpoints();
+        requestDocumentState(stompClientRef.current, sessionID, fileID);
+        setActiveFileId(fileID);
+    };
+
+    const handleCloseTab = (fileName) => {
+
+        if ( Array.from(fileNameToFileId.entries()).length === 1){
+            window.location.reload();
+            return;
+        }
+
+        const fileID = fileNameToFileId.get(fileName);
+        clearBreakpoints();
+        setFileNameToFileId((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(fileName);
+            return newMap;
+        });
+        if (fileID === activeFileId) {
+            const remainingFiles = Array.from(fileNameToFileId.entries());
+            const newActive = remainingFiles.find(([name, id]) => id !== fileID);
+            if (newActive) {
+                handleTabSwitch(newActive[1]);
+            } else {
+                setActiveFileId(null);
+            }
+        }
+    };
 
     const onMount = (editor) => {
         editorRef.current = editor;
         editor.focus();
         console.log("Editor mounted");
+
+        requestDocumentState(stompClientRef.current, sessionID, activeFileId);
 
         editor.updateOptions({
             glyphMargin: true,
@@ -84,6 +130,11 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
         });
     };
 
+    const clearBreakpoints = () => {
+        setBreakpoints(new Set());
+        updateBreakpointDecorations(new Set());
+    };
+
     const updateBreakpointDecorations = (bps = breakpoints) => {
         const model = editorRef.current?.getModel();
         if (!model) return;
@@ -103,16 +154,19 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
         decorationsRef.current = editorRef.current.deltaDecorations([], newDecorations);
     };
 
-    const handleRemoteOperation = (msg) => {
+    const handleRemoteOperation = (fileID, msg) => {
         try {
-            console.log("Received operation:", msg);
             const op = JSON.parse(msg);
 
             if (op.clientId && op.clientId === clientIdRef.current) {
                 return;
             }
 
-            const model = editorRef.current?.getModel();
+            if (fileID !== activeFileId || !editorRef.current) {
+                return;
+            }
+
+            const model = editorRef.current.getModel();
             if (!model) return;
 
             isProgrammaticChange.current = true;
@@ -148,6 +202,8 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
                 ]);
             }
 
+            console.log("applying op", op);
+
             isProgrammaticChange.current = false;
 
             updateBreakpointDecorations();
@@ -157,7 +213,7 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
     };
 
     const handleEditorChange = (newValue, event) => {
-        if (isProgrammaticChange.current) {
+        if (isProgrammaticChange.current || !activeFileId) {
             return;
         }
 
@@ -183,12 +239,15 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
                 op.value = change.text;
             }
 
-            console.log("Sending op:", op);
-            sendCode(stompClientRef.current, JSON.stringify(op));
+            sendCode(stompClientRef.current, activeFileId, op);
         });
 
         updateBreakpointDecorations();
     };
+
+    useEffect(() => {
+        console.log('Current breakpoints:', Array.from(breakpoints));
+    }, [breakpoints]);
 
     const autoType = async (text, delay = 100) => {
         const model = editorRef.current?.getModel();
@@ -217,10 +276,6 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
         return editorRef.current?.getModel()?.getValue() || "";
     };
 
-    useEffect(() => {
-        console.log('Current breakpoints:', Array.from(breakpoints));
-    }, [breakpoints]);
-
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '80vh' }}>
             <div
@@ -229,10 +284,47 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
                     backgroundColor: 'rgba(24, 24, 24, 1)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    paddingRight: '16px',
+                    padding: '0 16px',
                 }}
             >
+                <div style={{ flexGrow: 1 }}>
+                    {Array.from(fileNameToFileId.entries()).map(([fileName, fileID]) => (
+                        <span key={fileID} style={{ marginRight: '8px' }}>
+                            <button
+                                onClick={() => handleTabSwitch(fileID)}
+                                style={{
+                                    background: fileID === activeFileId ? '#555' : '#333',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px 8px',
+                                }}
+                            >
+                                {fileName}
+                            </button>
+                            <button
+                                onClick={() => handleCloseTab(fileName)}
+                                style={{
+                                    background: '#333',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px 8px',
+                                }}
+                            >
+                                x
+                            </button>
+                        </span>
+                    ))}
+                    <button
+                        onClick={() => {
+                            const fileName = prompt("Enter the name of the file to open:");
+                            if (fileName) {
+                                openFile(fileName);
+                            }
+                        }}
+                    >
+                        +
+                    </button>
+                </div>
                 <button
                     onClick={() =>
                         autoType(
@@ -240,20 +332,35 @@ const CodeEditor = ({ clientIdRef, sessionID, language }) => {
                             100
                         )
                     }
+                    style={{
+                        background: '#333',
+                        color: 'white',
+                        border: 'none',
+                        padding: '4px 8px',
+                        marginRight: '8px',
+                    }}
                 >
                     AutoType Demo
                 </button>
-                <ContainerButton sessionID={sessionID} language={language} />
-                <CopyButton sessionID={sessionID} language={language} getEditorContent={getEditorContent} />
+                <ContainerButton />
+                <CopyButton
+                    getEditorContent={getEditorContent}
+                />
             </div>
             <div style={{ height: '95%' }}>
-                <Editor
-                    height="100%"
-                    theme="vs-dark"
-                    defaultLanguage={language}
-                    onMount={onMount}
-                    onChange={handleEditorChange}
-                />
+                {activeFileId ? (
+                    <Editor
+                        height="100%"
+                        theme="vs-dark"
+                        language={language}
+                        onMount={onMount}
+                        onChange={handleEditorChange}
+                    />
+                ) : (
+                    <div style={{ color: 'white', padding: '16px' }}>
+                        No file selected. Open a file to start editing.
+                    </div>
+                )}
             </div>
         </div>
     );

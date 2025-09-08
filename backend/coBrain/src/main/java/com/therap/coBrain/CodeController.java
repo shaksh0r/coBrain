@@ -6,13 +6,18 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003",
+                        "http://localhost:3004", "http://localhost:3005", "http://localhost:3006",
+                        "http://localhost:3007", "http://localhost:3008", "http://localhost:3009"})
 public class CodeController {
 
     @Autowired
@@ -23,36 +28,53 @@ public class CodeController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-
-    // WebSocket handler for CRDT operations
+    // Existing WebSocket handlers remain unchanged
     @MessageMapping("/code")
     @SendTo("/code")
     public String handleCode(@Payload String message) throws Exception {
-        // Expecting JSON: { "op": "insert"|"delete", "index": int, "value": string }
         JsonNode node = objectMapper.readTree(message);
+        String fileID = node.get("fileID").asText();
         String op = node.get("op").asText();
         int index = node.get("index").asInt();
         String value = node.has("value") ? node.get("value").asText() : null;
 
         if ("insert".equals(op) && value != null) {
-            crdtDocumentManager.insertText(index, value);
+            crdtDocumentManager.insertText(fileID, index, value);
         } else if ("delete".equals(op)) {
             int length = node.has("length") ? node.get("length").asInt() : 1;
-            crdtDocumentManager.deleteText(index, length);
+            crdtDocumentManager.deleteText(fileID, index, length);
         } else if ("replace".equals(op) && value != null) {
             int length = node.has("length") ? node.get("length").asInt() : 1;
-            crdtDocumentManager.replaceText(index, length, value);
+            crdtDocumentManager.replaceText(fileID, index, length, value);
         }
 
-        // Broadcast the operation to all clients (forward the original message)
         System.out.println("Broadcasting message: " + message);
         return message;
     }
 
-    // Endpoint to get the current document state (for new clients)
     @MessageMapping("/code/state")
     @SendTo("/code/state")
-    public String getCurrentState() {
-        return crdtDocumentManager.getDocument();
+    public String getCurrentState(@Payload String message) throws Exception {
+        JsonNode node = objectMapper.readTree(message);
+        String fileID = node.get("fileID").asText();
+        String content = crdtDocumentManager.getDocument(fileID);
+        ObjectNode response = objectMapper.createObjectNode();
+        response.put("fileID", fileID);
+        response.put("content", content);
+        return objectMapper.writeValueAsString(response);
+    }
+
+    @PostMapping("/api/files")
+    public ObjectNode createFile(@RequestBody ObjectNode request) throws Exception {
+        String userID = request.get("userID").asText();
+        String sessionID = request.get("sessionID").asText();
+        String fileName = request.get("fileName").asText();
+
+        String fileID = crdtDocumentManager.getOrCreateFile(sessionID, fileName);
+        ObjectNode response = objectMapper.createObjectNode();
+        response.put("fileID", fileID);
+        response.put("fileName", fileName);
+        System.out.println("REST API response: fileID=" + fileID + ", fileName=" + fileName);
+        return response;
     }
 }

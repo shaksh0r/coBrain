@@ -1,42 +1,105 @@
-import SockJS from 'sockjs-client/dist/sockjs';
+import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
-export function sendCode(stompClient, code) {
-    if (stompClient && stompClient.connected) {
-        stompClient.publish({
-            destination: '/app/code',
-            body: code,
-        });
+export function connectWebSocket(onOperation, onCodeState, onFileResponse, clientIdRef) {
+    if (!clientIdRef || typeof clientIdRef.current === 'undefined') {
+        console.error('clientIdRef is undefined or invalid, generating temporary ID');
+        clientIdRef = { current: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` };
     }
-}
 
-export function connectWebSocket(onMessage, onInitialState) {
+    const socket = new SockJS('http://localhost:8080/ws');
     const stompClient = new Client({
-        webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-        onConnect: () => {
-            console.log("Connected\n");
-            stompClient.subscribe('/code', (message) => {
-                if (message.body && onMessage) {
-                    onMessage(message.body);
-                    console.log("Received code (WebSocket):\n" + message.body);
+        webSocketFactory: () => socket,
+        //debug: (str) => console.log('STOMP Debug:', str),
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+    });
+
+    stompClient.onConnect = (frame) => {
+        console.log('Connected: ' + frame);
+
+        // Subscribe to /code for CRDT operations
+        stompClient.subscribe('/code', (message) => {
+            try {
+                const payload = JSON.parse(message.body);
+                const fileID = payload.fileID;
+                // console.log('Received:', payload);
+                if (typeof onOperation === 'function') {
+                    onOperation(fileID, message.body);
+                } else {
+                    console.error('onOperation is not a function:', onOperation);
                 }
-            });
-            stompClient.subscribe('/code/state', (message) => {
-                if (message.body && onInitialState) {
-                    onInitialState(message.body);
-                    console.log("Received initial state (WebSocket):\n" + message.body);
+            } catch (e) {
+                console.error('Error parsing operation message:', e, 'Raw message:', message.body);
+            }
+        });
+
+        // Subscribe to /code/state for document state
+        stompClient.subscribe('/code/state', (message) => {
+            try {
+                const payload = JSON.parse(message.body);
+                const fileID = payload.fileID;
+                const content = payload.content;
+                console.log('Received state', message);
+                if (typeof onCodeState === 'function') {
+                    onCodeState(fileID, content);
+                } else {
+                    console.error('onCodeState is not a function:', onCodeState);
                 }
-            });
-            // Request the current document state
-            stompClient.publish({ destination: '/app/code/state', body: '' });
+            } catch (e) {
+                console.error('Error parsing state message:', e);
+            }
+        });
+    };
+
+    stompClient.onStompError = (frame) => {
+        console.error('Broker reported error: ' + frame.headers['message']);
+        console.error('Additional details: ' + frame.body);
+    };
+
+    stompClient.onWebSocketError = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    stompClient.configure({
+        connectHeaders: {
+            login: clientIdRef.current,
+            passcode: 'password',
         },
     });
+
     stompClient.activate();
+    console.log('STOMP client activated');
     return stompClient;
 }
 
 export function disconnectWebSocket(stompClient) {
     if (stompClient) {
         stompClient.deactivate();
+        console.log('WebSocket disconnected');
+    }
+}
+
+export function sendCode(stompClient, fileID, message) {
+    if (stompClient && stompClient.active) {
+        const payload = {
+            ...message,
+            fileID: fileID
+        };
+        //console.log("Sending:", payload);
+        stompClient.publish({
+            destination: '/app/code',
+            body: JSON.stringify(payload),
+        });
+    }
+}
+
+export function requestDocumentState(stompClient, sessionID, fileID) {
+    if (stompClient && stompClient.active) {
+        stompClient.publish({
+            destination: '/app/code/state',
+            body: JSON.stringify({ fileID }),
+        });
     }
 }
