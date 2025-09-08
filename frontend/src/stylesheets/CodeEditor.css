@@ -1,0 +1,28 @@
+/* ../stylesheets/CodeEditor.css */
+.monaco-editor .margin .breakpoint {
+    content: ' ';
+    width: 12px; /* Reduced from 12px to make circles smaller */
+    height: 12px; /* Reduced from 12px to make circles smaller */
+    border-radius: 50%;
+    background-color: red;
+    margin: 3px auto; /* Adjusted to center smaller circles */
+}
+
+/* Optional: Line highlighting for breakpoint lines */
+.monaco-editor .breakpoint-line {
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* New: Hover effect for unmarked lines in glyph margin */
+.monaco-editor .margin-view-overlays .glyph-margin:hover::before {
+    content: ' ';
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.3); /* Faded red (30% opacity) */
+    margin: 3px auto;
+    display: block;
+    position: relative;
+    left: 0;
+    top: 0;
+}
