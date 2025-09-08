@@ -73,7 +73,6 @@ const CodeEditor = () => {
         }
 
         const fileID = fileNameToFileId.get(fileName);
-        clearBreakpoints();
         setFileNameToFileId((prev) => {
             const newMap = new Map(prev);
             newMap.delete(fileName);
