@@ -1,84 +1,62 @@
 package com.service.auth.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "sessions")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "session_id")
-    private UUID sessionId;
+    private String sessionId;
 
-    @Column(name = "name", length = 100)
-    private String name;
+    @Column(nullable = false)
+    private String sessionName;
 
-    @ManyToOne
-    @JoinColumn(name = "owner_user_id", nullable = false)
-    private User owner;
+    private String description;
 
-    @Column(name = "created_at")
+    @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
-    @Column(name = "status", length = 20)
-    @Enumerated(EnumType.STRING)
-    private SessionStatus status = SessionStatus.ACTIVE;
+    @Column(nullable = false)
+    private boolean active = true;
 
-    public enum SessionStatus {
-        ACTIVE, INACTIVE
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_sessions",
+            joinColumns = @JoinColumn(name = "session_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @JsonIgnore
+    private Set<User> users = new HashSet<>();
+
+    public void addUser(User user) {
+        this.users.add(user);
+        user.getSessions().add(this);
     }
 
-    // Getters and Setters
-    public UUID getSessionId() {
-        return sessionId;
+    public void removeUser(User user) {
+        this.users.remove(user);
+        user.getSessions().remove(this);
     }
 
-    public void setSessionId(UUID sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
-    public SessionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(SessionStatus status) {
-        this.status = status;
+    @Override
+    public String toString() {
+        return "Session{" +
+                "sessionId='" + sessionId + '\'' +
+                ", sessionName='" + sessionName + '\'' +
+                ", active=" + active +
+                '}';
     }
 }

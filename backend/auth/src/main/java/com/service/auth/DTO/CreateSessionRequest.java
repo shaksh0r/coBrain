@@ -1,14 +1,10 @@
 package com.service.auth.DTO;
 
+import lombok.Data;
+
+@Data
 public class CreateSessionRequest {
-    private String name;
-
-    // Getters and Setters
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    private String sessionName;
+    private String description;
+    private Integer expirationHours; // Optional, session expiration in hours
 }

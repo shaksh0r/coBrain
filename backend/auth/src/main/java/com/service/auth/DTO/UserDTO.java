@@ -1,13 +1,14 @@
 package com.service.auth.DTO;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-public class SignupRequest {
+@Builder
+public class UserDTO {
+    private String userId;
     private String username;
     private String email;
-    private String password;
     private String firstName;
     private String lastName;
 }
-

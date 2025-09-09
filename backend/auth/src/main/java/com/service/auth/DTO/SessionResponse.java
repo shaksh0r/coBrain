@@ -1,30 +1,20 @@
 package com.service.auth.DTO;
 
-import java.util.UUID;
+import lombok.Builder;
+import lombok.Data;
+import java.time.LocalDateTime;
+import java.util.List;
 
+@Data
+@Builder
 public class SessionResponse {
-    private UUID sessionId;
-    private String name;
-
-    public SessionResponse(UUID sessionId, String name) {
-        this.sessionId = sessionId;
-        this.name = name;
-    }
-
-    // Getters and Setters
-    public UUID getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(UUID sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    private String sessionId;
+    private String sessionName;
+    private String description;
+    private LocalDateTime createdAt;
+    private LocalDateTime expiresAt;
+    private boolean active;
+    private List<UserDTO> users;
 }
+
+// Add this to the existing DTO classes file

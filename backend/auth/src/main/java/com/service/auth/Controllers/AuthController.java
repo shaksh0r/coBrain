@@ -1,42 +1,46 @@
 package com.service.auth.Controllers;
 
-import com.service.auth.DTO.LoginResponse;
-import com.service.auth.DTO.SignupResponse;
-import com.service.auth.Entities.User;
-import com.service.auth.DTO.LoginRequest;
-import com.service.auth.DTO.SignupRequest;
-import com.service.auth.Services.UserService;
+import com.service.auth.DTO.*;
+import com.service.auth.Services.AuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class AuthController {
 
-    private final UserService userService;
-
-    public AuthController(UserService userService) {
-        this.userService = userService;
-    }
+    private final AuthService authService;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
-            User user = userService.signup(request);
-            return ResponseEntity.ok(new SignupResponse(user.getUserId(), user.getUsername()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            AuthResponse response = authService.signup(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            String jwt = userService.login(request);
-            User user = userService.getUserByUsername(request.getUsername());
-            return ResponseEntity.ok(new LoginResponse(jwt, user.getUserId()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            AuthResponse response = authService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
+        try {
+            boolean isValid = authService.validateToken(token.replace("Bearer ", ""));
+            return ResponseEntity.ok(new ValidationResponse(isValid));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ValidationResponse(false));
         }
     }
 }
