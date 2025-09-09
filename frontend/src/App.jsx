@@ -1,16 +1,17 @@
 import './App.css';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import CodeEditor from './Components/CodeEditor.jsx';
 import Terminal from './Components/Terminal.jsx';
 import IDEContext from './Context/IDEContext.jsx';
-import { requestDocumentState } from './API/crdtwebsocket'; // Removed requestFile
+import { requestDocumentState } from './API/crdtwebsocket';
 
 function App() {
     const clientIdRef = useRef(uuidv4());
     const [sessionID, setSessionID] = useState("1");
     const [fileNameToFileId, setFileNameToFileId] = useState(new Map());
     const [activeFileId, setActiveFileId] = useState(null);
+    const [language, setLanguage] = useState(null);
     const stompClientRef = useRef(null);
 
     const openFile = async (fileName) => {
@@ -47,12 +48,18 @@ function App() {
         }
     };
 
-    const language = useMemo(() => {
-        if (!activeFileId) return 'plaintext';
+    useEffect(() => {
+        if (!activeFileId) {
+            setLanguage(null);
+            return;
+        }
         const fileName = Array.from(fileNameToFileId.entries()).find(
             ([, id]) => id === activeFileId
         )?.[0];
-        if (!fileName) return 'plaintext';
+        if (!fileName) {
+            setLanguage(null);
+            return;
+        }
 
         const extension = fileName.split('.').pop()?.toLowerCase();
         const languageMap = {
@@ -72,7 +79,7 @@ function App() {
             md: 'markdown',
             txt: 'plaintext',
         };
-        return languageMap[extension] || 'plaintext';
+        setLanguage(languageMap[extension] || 'plaintext');
     }, [activeFileId, fileNameToFileId]);
 
     const contextValue = {

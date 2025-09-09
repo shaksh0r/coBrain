@@ -11,6 +11,9 @@ import org.automerge.ObjectType;
 import org.automerge.Transaction;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 @Component
 public class CRDTDocumentManager {
     private final Map<String, String> sessionToFileName = new HashMap<>();
@@ -103,5 +106,23 @@ public class CRDTDocumentManager {
         }
         Optional<String> text = doc.text(textId);
         return text.orElse("");
+    }
+
+    public synchronized ObjectNode getDirectoryContent(String sessionID){
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode dirContent = objectMapper.createObjectNode();
+        for (Map.Entry<String, String> entry : sessionToFileName.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(sessionID + ":")) {
+                String fileName = key.substring(sessionID.length() + 1);
+                String fileID = entry.getValue();
+                String content = getDocument(fileID);
+                ObjectNode fileNode = objectMapper.createObjectNode();
+                fileNode.put("fileName", fileName);
+                fileNode.put("content", content);
+                dirContent.set(fileName, fileNode);
+            }
+        }
+        return dirContent;
     }
 }

@@ -1,7 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { connectTerminal, disconnectTerminal, sendInput } from '../API/iowebsocket';
+import { useIDEContext } from '../Context/IDEContext';
 
-const Terminal = ({ sessionID, language }) => {
+const Terminal = () => {
+
+    const { sessionID, language } = useIDEContext();
     const socketRef = useRef(null);
     const outputRef = useRef(null);
     const [outputLines, setOutputLines] = useState([]);

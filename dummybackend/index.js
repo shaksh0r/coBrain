@@ -1,3 +1,4 @@
+const JSZip = require('jszip');
 const express = require('express');
 const cors = require('cors');
 const WebSocket = require('ws'); // Import ws library
@@ -13,16 +14,28 @@ app.get("/getContainer/:sessionID/:language", (req, res) => {
     res.json({ message: `Container for sessionID: ${sessionID}, language: ${language} created.` });
 });
 
-app.post("/copy", (req, res) => {
+app.post("/copy", async (req, res) => {
     const { sessionID, directoryContent, language } = req.body;
     console.log(`Copy request for sessionID: ${sessionID}, language: ${language}`);
-    console.log('Directory Content:', directoryContent);
+
+    // Decode base64 to buffer
+    const zipBuffer = Buffer.from(directoryContent, 'base64');
+    const zip = await JSZip.loadAsync(zipBuffer);
+
+    // Extract files
+    for (const fileName of Object.keys(zip.files)) {
+        const file = zip.files[fileName];
+        const content = await file.async('string');
+        console.log('Extracted file:', fileName);
+        console.log('Content:', content);
+    }
+
     res.json({ message: `Code copied for sessionID: ${sessionID}, language: ${language}.` });
 });
 
 // Start Express server and attach WebSocket
-const server = app.listen(8080, () => {
-    console.log('Dummy backend server is running on port 8080');
+const server = app.listen(3010, () => {
+    console.log('Dummy backend server is running on port 3010');
 });
 
 // Initialize WebSocket server

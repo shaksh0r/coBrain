@@ -77,4 +77,11 @@ public class CodeController {
         System.out.println("REST API response: fileID=" + fileID + ", fileName=" + fileName);
         return response;
     }
+
+    @PostMapping("/api/directory")
+    public ObjectNode getDirectoryContent(@RequestBody ObjectNode request) throws Exception {
+        String sessionID = request.get("sessionID").asText();
+        System.out.println("Received directory content request for sessionID: " + sessionID);
+        return crdtDocumentManager.getDirectoryContent(sessionID);
+    }
 }
