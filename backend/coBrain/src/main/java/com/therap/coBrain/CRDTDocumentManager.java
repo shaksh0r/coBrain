@@ -98,7 +98,24 @@ public class CRDTDocumentManager {
         }
     }
 
-    public synchronized String getDocument(String fileID) {
+    public synchronized String getDocument(String sessionID, String fileID) {
+        // Find fileName by searching sessionToFileName for the fileID
+        String fileName = null;
+        for (Map.Entry<String, String> entry : sessionToFileName.entrySet()) {
+            if (entry.getValue().equals(fileID) && entry.getKey().startsWith(sessionID + ":")) {
+                fileName = entry.getKey().substring(sessionID.length() + 1);
+                break;
+            }
+        }
+        if (fileName == null) {
+            throw new IllegalArgumentException("File not found for sessionID: " + sessionID + " and fileID: " + fileID);
+        }
+
+        String mappedFileID = fileNameToFileID.get(fileName);
+        if (mappedFileID == null || !mappedFileID.equals(fileID)) {
+            throw new IllegalArgumentException("FileID not found for fileName: " + fileName);
+        }
+
         Document doc = fileIDToDocument.get(fileID);
         ObjectId textId = fileIDToTextId.get(fileID);
         if (doc == null || textId == null) {
@@ -116,7 +133,7 @@ public class CRDTDocumentManager {
             if (key.startsWith(sessionID + ":")) {
                 String fileName = key.substring(sessionID.length() + 1);
                 String fileID = entry.getValue();
-                String content = getDocument(fileID);
+                String content = getDocument(sessionID, fileID);
                 ObjectNode fileNode = objectMapper.createObjectNode();
                 fileNode.put("fileName", fileName);
                 fileNode.put("content", content);

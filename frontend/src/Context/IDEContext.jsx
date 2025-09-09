@@ -6,7 +6,6 @@ const IDEContext = createContext({
     setFileNameToFileId: () => {},
     activeFileId: null,
     setActiveFileId: () => {},
-    openFile: () => {},
     stompClientRef: { current: null },
     clientIdRef: { current: null },
     language: 'plaintext',

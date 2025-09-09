@@ -8,7 +8,7 @@ import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/CodeEditor.css';
 
 const CodeEditor = () => {
-    const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId, openFile, stompClientRef, clientIdRef, language } = useIDEContext();
+    const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId, stompClientRef, clientIdRef, language } = useIDEContext();
     const editorRef = useRef(null);
     const isProgrammaticChange = useRef(false);
     const decorationsRef = useRef([]);
@@ -26,31 +26,7 @@ const CodeEditor = () => {
                 } else {
                     console.warn('Operation received for unknown fileID:', fileID);
                 }
-            },
-            (fileID, content) => {
-                if (Array.from(fileNameToFileId.values()).includes(fileID)) {
-                    const model = editorRef.current.getModel();
-                    if (model) {
-                        isProgrammaticChange.current = true;
-                        model.applyEdits([
-                            {
-                                range: model.getFullModelRange(),
-                                text: content || '',
-                                forceMoveMarkers: true,
-                            },
-                        ]);
-                        isProgrammaticChange.current = false;
-                    }
-                }
-            },
-            (fileID, message) => {
-                const response = JSON.parse(message.body);
-                const fileName = response.fileName;
-                setFileNameToFileId((prev) => new Map(prev).set(fileName, fileID));
-                setActiveFileId(fileID);
-                requestDocumentState(stompClientRef.current, sessionID, fileID);
-            },
-            clientIdRef
+            }
         );
         stompClientRef.current = client;
         return () => {
@@ -59,9 +35,10 @@ const CodeEditor = () => {
         };
     }, [sessionID, setFileNameToFileId, setActiveFileId, fileNameToFileId]);
 
-    const handleTabSwitch = (fileID) => {
+    const handleTabSwitch = async (fileID) => {
         clearBreakpoints();
-        requestDocumentState(stompClientRef.current, sessionID, fileID);
+        const content = await requestDocumentState(sessionID, fileID, clientIdRef);
+        loadDocument(content);
         setActiveFileId(fileID);
     };
 
@@ -89,12 +66,13 @@ const CodeEditor = () => {
         }
     };
 
-    const onMount = (editor) => {
+    const onMount = async (editor) => {
         editorRef.current = editor;
         editor.focus();
         console.log("Editor mounted");
 
-        requestDocumentState(stompClientRef.current, sessionID, activeFileId);
+        const content = await requestDocumentState(sessionID, activeFileId, clientIdRef);
+        loadDocument(content);
 
         editor.updateOptions({
             glyphMargin: true,
@@ -244,6 +222,21 @@ const CodeEditor = () => {
         updateBreakpointDecorations();
     };
 
+    const loadDocument = (content) => {
+        const model = editorRef.current.getModel();
+        if (model) {
+            isProgrammaticChange.current = true;
+            model.applyEdits([
+                {
+                    range: model.getFullModelRange(),
+                    text: content || '',
+                    forceMoveMarkers: true,
+                },
+            ]);
+            isProgrammaticChange.current = false;
+        }
+    };
+
     useEffect(() => {
         console.log('Current breakpoints:', Array.from(breakpoints));
     }, [breakpoints]);
@@ -268,6 +261,39 @@ const CodeEditor = () => {
             const endPosition = model.getPositionAt(model.getValue().length);
             editor.setPosition(endPosition);
             await new Promise((res) => setTimeout(res, delay));
+        }
+    };
+
+    const openFile = async (fileName) => {
+
+        let fileID = null;
+
+        if (fileNameToFileId.has(fileName)) {
+            fileID = fileNameToFileId.get(fileName);
+        } else {
+            try {
+                const response = await fetch('http://localhost:8080/api/files', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userID: clientIdRef.current,
+                        sessionID: sessionID,
+                        fileName: fileName,
+                    }),
+                });
+                if (!response.ok) throw new Error('Failed to create file');
+                const data = await response.json();
+                fileID = data.fileID;
+                setFileNameToFileId((prev) => new Map(prev).set(data.fileName, data.fileID));
+            } catch (error) {
+                console.error('Error creating file:', error);
+            }
+
+            if (Array.from(fileNameToFileId.values()).length === 0) {
+                setActiveFileId(fileID);
+            }
         }
     };
 
@@ -320,6 +346,8 @@ const CodeEditor = () => {
                                 openFile(fileName);
                             }
                         }}
+
+                        style={{ color: 'white', backgroundColor: 'rgba(66, 66, 66, 1)' }}
                     >
                         +
                     </button>
@@ -356,9 +384,22 @@ const CodeEditor = () => {
                         onChange={handleEditorChange}
                     />
                 ) : (
-                    <div style={{ color: 'white', padding: '16px' }}>
-                        No file selected. Open a file to start editing.
-                    </div>
+                    <div
+                    style={{
+                        top: 0,
+                        left: 0,
+                        height: '100%',
+                        backgroundColor: 'rgba(30, 30, 30, 1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'rgba(104, 104, 104, 0.5)',
+                        fontSize: '1.2rem',
+                        zIndex: 1,
+                    }}
+                >
+                    No file selected. Open a file to start editing.
+                </div>
                 )}
             </div>
         </div>

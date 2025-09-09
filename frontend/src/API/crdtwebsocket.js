@@ -34,23 +34,6 @@ export function connectWebSocket(onOperation, onCodeState, onFileResponse, clien
                 console.error('Error parsing operation message:', e, 'Raw message:', message.body);
             }
         });
-
-        // Subscribe to /code/state for document state
-        stompClient.subscribe('/code/state', (message) => {
-            try {
-                const payload = JSON.parse(message.body);
-                const fileID = payload.fileID;
-                const content = payload.content;
-                console.log('Received state', message);
-                if (typeof onCodeState === 'function') {
-                    onCodeState(fileID, content);
-                } else {
-                    console.error('onCodeState is not a function:', onCodeState);
-                }
-            } catch (e) {
-                console.error('Error parsing state message:', e);
-            }
-        });
     };
 
     stompClient.onStompError = (frame) => {
@@ -95,11 +78,23 @@ export function sendCode(stompClient, fileID, message) {
     }
 }
 
-export function requestDocumentState(stompClient, sessionID, fileID) {
-    if (stompClient && stompClient.active) {
-        stompClient.publish({
-            destination: '/app/code/state',
-            body: JSON.stringify({ fileID }),
+export async function requestDocumentState(sessionID, fileID, clientIdRef) {
+    try {
+        const response = await fetch('http://localhost:8080/api/state', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userID: clientIdRef.current,
+                sessionID: sessionID,
+                fileID: fileID,
+            }),
         });
+        if (!response.ok) throw new Error('Failed to retrieve document contents');
+        const data = await response.json();
+        return data.content || '';
+    } catch (error) {
+        console.error('Error retrieving document contents:', error);
     }
 }

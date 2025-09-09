@@ -52,16 +52,21 @@ public class CodeController {
         return message;
     }
 
-    @MessageMapping("/code/state")
-    @SendTo("/code/state")
-    public String getCurrentState(@Payload String message) throws Exception {
-        JsonNode node = objectMapper.readTree(message);
-        String fileID = node.get("fileID").asText();
-        String content = crdtDocumentManager.getDocument(fileID);
-        ObjectNode response = objectMapper.createObjectNode();
-        response.put("fileID", fileID);
-        response.put("content", content);
-        return objectMapper.writeValueAsString(response);
+    @PostMapping("/api/state")
+    public String getCurrentState(@RequestBody ObjectNode request) throws Exception {
+        try {
+            String fileID = request.get("fileID").asText();
+            String sessionID = request.get("sessionID").asText();
+            String content = crdtDocumentManager.getDocument(sessionID, fileID);
+            ObjectNode response = objectMapper.createObjectNode();
+            response.put("fileID", fileID);
+            response.put("content", content);
+            return objectMapper.writeValueAsString(response);
+        } catch (IllegalArgumentException e) {
+            ObjectNode errorResponse = objectMapper.createObjectNode();
+            errorResponse.put("error", e.getMessage());
+            return objectMapper.writeValueAsString(errorResponse);
+        }
     }
 
     @PostMapping("/api/files")
