@@ -6,11 +6,6 @@
       "src": "coBrainlogo.png",
       "sizes": "580x580",
       "type": "image/png"
-    },
-    {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
     }
   ],
   "start_url": ".",

@@ -21,7 +21,7 @@ const CodeEditor = () => {
                     if (fileID === activeFileId) {
                         handleRemoteOperation(fileID, message);
                     } else {
-                        console.log('Operation ignored - fileID does not match activeFileId:', fileID, activeFileId);
+                        console.log('Operation ignored - fileID does not match activeFileId:', fileID, "!==", activeFileId);
                     }
                 } else {
                     console.warn('Operation received for unknown fileID:', fileID);
@@ -33,7 +33,7 @@ const CodeEditor = () => {
             console.log("Disconnecting WebSocket...");
             disconnectWebSocket(client);
         };
-    }, [sessionID, setFileNameToFileId, setActiveFileId, fileNameToFileId]);
+    }, [sessionID, setFileNameToFileId, setActiveFileId, fileNameToFileId, activeFileId]);
 
     const handleTabSwitch = async (fileID) => {
         clearBreakpoints();
