@@ -60,7 +60,14 @@ function App() {
 
     return (
         <IDEContext.Provider value={contextValue}>
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: '100vh',
+                margin: 0,
+                padding: 0,
+                backgroundColor: 'rgba(24, 24, 24, 1)'
+            }}>
                 <CodeEditor />
                 <Terminal />
             </div>

@@ -302,7 +302,7 @@ const CodeEditor = () => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '80vh' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '75%' }}>
             <div
                 style={{
                     height: '5%',
@@ -347,7 +347,7 @@ const CodeEditor = () => {
                             }
                         }}
 
-                        style={{ color: 'white', backgroundColor: 'rgba(66, 66, 66, 1)' }}
+                        style={{ color: 'white', backgroundColor: 'rgba(66, 66, 66, 1)', padding: '4px 8px' }}
                     >
                         +
                     </button>
