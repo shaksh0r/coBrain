@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Pipeline Slide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f5;
+        }
+        .slide {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 40px;
+            background: linear-gradient(135deg, #e8e8f0 50%, #d9c7a8 50%);
+            position: relative;
+            overflow: hidden;
+        }
+        .slide::before {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: #6b8eb7;
+            border-radius: 50%;
+            bottom: -75px;
+            left: -75px;
+        }
+        .slide::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #d9c7a8;
+            border-radius: 50%;
+            top: 20px;
+            right: 20px;
+        }
+        h1 {
+            font-size: 48px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            color: #fff;
+            background-color: #d9c7a8;
+            padding: 10px 20px;
+            display: inline-block;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            color: #444;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h1>TRACKING PIPELINE</h1>
+        <h2>DETECTION STAGE</h2>
+        <ul>
+            <li>Fusion/ensemble model for robustness</li>
+            <li>Frame-wise object detection</li>
+        </ul>
+    </div>
+
+    <!-- Repeat the div with .slide class for other stages, updating h2 and ul content -->
+    <!-- Example for SAHI Enhancement -->
+    <div class="slide">
+        <h1>TRACKING PIPELINE</h1>
+        <h2>SAHI ENHANCEMENT</h2>
+        <ul>
+            <li>Boosts small object detection</li>
+            <li>Splits images into overlapping patches</li>
+            <li>Merges patch results seamlessly</li>
+        </ul>
+    </div>
+
+    <!-- Example for ByteTrack Integration -->
+    <div class="slide">
+        <h1>TRACKING PIPELINE</h1>
+        <h2>BYTETRACK INTEGRATION</h2>
+        <ul>
+            <li>Feeds detections into ByteTrack</li>
+            <li>Kalman filter for motion prediction</li>
+            <li>Hungarian algorithm for assignment</li>
+        </ul>
+    </div>
+
+    <!-- Example for Temporal Continuity -->
+    <div class="slide">
+        <h1>TRACKING PIPELINE</h1>
+        <h2>TEMPORAL CONTINUITY</h2>
+        <ul>
+            <li>Preserves identities across frames</li>
+            <li>Manages occlusions</li>
+            <li>Recovers from short disappearances</li>
+        </ul>
+    </div>
+</body>
+</html>

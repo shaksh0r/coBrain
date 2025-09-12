@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  jdb-container:
+    image: openjdk:17-jdk
+    working_dir: /code
+    tty: true
+    stdin_open: true
