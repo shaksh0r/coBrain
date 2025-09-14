@@ -1,13 +1,16 @@
 import { createContext, useContext } from 'react';
 
 const IDEContext = createContext({
+    clientIdRef: { current: null },
+    stompClientRef: { current: null },
+    userName: '',
+    setUserName: () => {},
     sessionID: '',
+    setSessionID: () => {},
     fileNameToFileId: new Map(),
     setFileNameToFileId: () => {},
     activeFileId: null,
     setActiveFileId: () => {},
-    stompClientRef: { current: null },
-    clientIdRef: { current: null },
     language: 'plaintext',
 });
 

@@ -1,77 +1,94 @@
 import './App.css';
-import { useState, useRef, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import CodeEditor from './Components/CodeEditor.jsx';
-import Terminal from './Components/Terminal.jsx';
-import IDEContext from './Context/IDEContext.jsx';
+import React, { useState, useEffect } from 'react';
+import {
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    Navigate
+} from 'react-router-dom';
+import EditorPage from './Components/EditorPage.jsx';
+import Login from './Components/Login.jsx';
+import Register from './Components/Register.jsx';
+import AuthContext from './Context/AuthContext.jsx';
+import { validateToken } from './API/authapi.js';
+import './stylesheets/FormStyle.css';
 
 function App() {
-    const clientIdRef = useRef(uuidv4());
-    const [sessionID, setSessionID] = useState("1");
-    const [fileNameToFileId, setFileNameToFileId] = useState(new Map());
-    const [activeFileId, setActiveFileId] = useState(null);
-    const [language, setLanguage] = useState(null);
-    const stompClientRef = useRef(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const checkIsAuthenticated = async () => {
+        const token = localStorage.getItem("token");
+        try {
+            if (token) {
+                const response = await validateToken(token);
+                setIsAuthenticated(response.valid);
+            } else {
+                setIsAuthenticated(false);
+            }
+        } catch (error) {
+            console.log("auth error:", error);
+            setIsAuthenticated(false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        if (!activeFileId) {
-            setLanguage(null);
-            return;
-        }
-        const fileName = Array.from(fileNameToFileId.entries()).find(
-            ([, id]) => id === activeFileId
-        )?.[0];
-        if (!fileName) {
-            setLanguage(null);
-            return;
-        }
+        checkIsAuthenticated();
+    }, []);
 
-        const extension = fileName.split('.').pop()?.toLowerCase();
-        const languageMap = {
-            java: 'java',
-            js: 'javascript',
-            jsx: 'javascript',
-            ts: 'typescript',
-            tsx: 'typescript',
-            py: 'python',
-            cpp: 'cpp',
-            cxx: 'cpp',
-            cc: 'cpp',
-            cs: 'csharp',
-            html: 'html',
-            css: 'css',
-            json: 'json',
-            md: 'markdown',
-            txt: 'plaintext',
-        };
-        setLanguage(languageMap[extension] || 'plaintext');
-    }, [activeFileId, fileNameToFileId]);
+    if (isLoading) {
+        return (
+            <div className="form-container">
+                <p className="loading-text">Loading...</p>
+            </div>
+        );
+    }
 
     const contextValue = {
-        sessionID,
-        fileNameToFileId,
-        setFileNameToFileId,
-        activeFileId,
-        setActiveFileId,
-        stompClientRef,
-        clientIdRef,
-        language,
+        isAuthenticated,
+        setIsAuthenticated
     };
 
     return (
-        <IDEContext.Provider value={contextValue}>
-            <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                height: '100vh',
-                margin: 0,
-                padding: 0,
-                backgroundColor: 'rgba(24, 24, 24, 1)'
-            }}>
-                <CodeEditor />
-                <Terminal />
-            </div>
-        </IDEContext.Provider>
+        <AuthContext.Provider value={contextValue}>
+            <Router>
+                <Routes>
+                    <Route path="/" element={<Navigate to="/home" replace />} />
+                    <Route
+                        path="/home"
+                        element={
+                            isAuthenticated ? (
+                                <EditorPage />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/login"
+                        element={
+                            isAuthenticated ? (
+                                <Navigate to="/home" replace />
+                            ) : (
+                                <Login />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/register"
+                        element={
+                            isAuthenticated ? (
+                                <Navigate to="/home" replace />
+                            ) : (
+                                <Register />
+                            )
+                        }
+                    />
+                </Routes>
+            </Router>
+        </AuthContext.Provider>
     );
 }
 
