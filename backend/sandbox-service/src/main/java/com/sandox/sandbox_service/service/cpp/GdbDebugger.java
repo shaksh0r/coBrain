@@ -97,7 +97,7 @@ public class GdbDebugger extends TextWebSocketHandler {
             }
         } else {
             System.out.println("[TROUBLESHOOT] Invalid GDB command from user " + userId + ": " + payload);
-            session.sendMessage(new TextMessage("Error: Invalid GDB command: " + payload));
+            session.sendMessage(new TextMessage("Error:cpp Invalid GDB command: " + payload));
         }
     }
 

@@ -1,4 +1,4 @@
-git package com.sandox.sandbox_service.service.cpp;
+package com.sandox.sandbox_service.service.cpp;
 
 import com.sandox.sandbox_service.service.ContainerIO;
 import org.springframework.stereotype.Service;
