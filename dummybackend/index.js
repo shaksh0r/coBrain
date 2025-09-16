@@ -68,7 +68,7 @@ app.post("/api/sessions/create", (req, res) => {
         createdAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + expirationHours * 3600000).toISOString(),
         active: true,
-        message: "Session created successfully",
+        message: `Session created successfully ${sessionName}:${sessionId}`,
         users: [
             {
                 userId: "2105094",
@@ -84,7 +84,7 @@ app.post("/api/sessions/:sessionId/join", (req, res) => {
     console.log(`User joining session: ${sessionId}`);
 
     res.status(201).json({
-        message: "Successfully joined session"
+        message: `Successfully joined session ${sessionId}`
     });
 });
 
@@ -97,7 +97,7 @@ app.post("/api/sessions/:sessionId/leave", (req, res) => {
     });
 });
 
-app.get("/api/sessions/user", (req, res) => {
+app.post("/api/sessions/user/:userId", (req, res) => {
     res.status(200).json({
         sessions: [
             {

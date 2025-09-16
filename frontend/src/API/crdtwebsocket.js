@@ -78,6 +78,20 @@ export function sendCode(stompClient, fileID, message) {
     }
 }
 
+export async function getAllFiles() {
+    try {
+        const response = await fetch('http://localhost:8080/api/getAllFiles', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) throw new Error('Failed to retrieve all files');
+        const data = await response.json();
+        return data.files || [];
+    } catch (error) {
+        console.error('Error retrieving all files:', error);
+    }
+}
+
 export async function requestDocumentState(sessionID, fileID, clientIdRef) {
     try {
         const response = await fetch('http://localhost:8080/api/state', {

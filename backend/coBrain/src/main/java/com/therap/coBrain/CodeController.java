@@ -6,6 +6,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -88,5 +89,10 @@ public class CodeController {
         String sessionID = request.get("sessionID").asText();
         System.out.println("Received directory content request for sessionID: " + sessionID);
         return crdtDocumentManager.getDirectoryContent(sessionID);
+    }
+
+    @GetMapping("/api/getAllFiles")
+    public ObjectNode getAllFiles() {
+        return crdtDocumentManager.getAllFiles();
     }
 }

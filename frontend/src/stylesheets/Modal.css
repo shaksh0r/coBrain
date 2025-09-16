@@ -1,0 +1,106 @@
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: rgba(30, 30, 30, 1);
+    padding: 20px;
+    border: 1px solid rgba(43, 43, 43, 1);
+    border-radius: 8px;
+    width: 40%;
+    max-width: 500px;
+    color: rgba(204, 204, 204, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+    text-align: center;
+    margin-bottom: 20px;
+    color: rgba(204, 204, 204, 1);
+}
+
+.modal-input-group {
+    margin-bottom: 15px;
+}
+
+.modal-label {
+    display: block;
+    margin-bottom: 5px;
+    color: rgba(204, 204, 204, 1);
+}
+
+.modal-input {
+    width: 100%;
+    padding: 8px;
+    background-color: rgba(40, 40, 40, 1);
+    color: rgba(204, 204, 204, 1);
+    border: 1px solid rgba(60, 60, 60, 1);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.modal-input::placeholder {
+    color: rgba(104, 104, 104, 0.7);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-button {
+    padding: 10px 20px;
+    background-color: transparent;
+    color: rgba(204, 204, 204, 1);
+    border: 1px solid rgba(60, 60, 60, 1);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.modal-button:hover {
+    background-color: rgba(60, 60, 60, 0.7);
+}
+
+.modal-button.primary {
+    background-color: #007acc;
+    border: none;
+    color: white;
+}
+
+.modal-button.primary:hover {
+    background-color: #005f99;
+}
+
+.modal-error {
+    color: #ff5555;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.modal-details p {
+    margin-bottom: 10px;
+}
+
+.modal-members {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.modal-members li {
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(60, 60, 60, 1);
+}

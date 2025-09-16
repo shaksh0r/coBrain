@@ -16,19 +16,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Component
 public class CRDTDocumentManager {
-    private final Map<String, String> sessionToFileName = new HashMap<>();
-    private final Map<String, String> fileNameToFileID = new HashMap<>();
+    private final Map<String, Map<String, String>> sessionToFiles = new HashMap<>(); // sessionID -> (fileName -> fileID)
     private final Map<String, Document> fileIDToDocument = new HashMap<>();
     private final Map<String, ObjectId> fileIDToTextId = new HashMap<>();
 
     public synchronized String getOrCreateFile(String sessionID, String fileName) {
-        String key = sessionID + ":" + fileName;
-        String fileID = sessionToFileName.get(key);
-
+        // Get or create the inner map for this session
+        Map<String, String> fileMap = sessionToFiles.computeIfAbsent(sessionID, k -> new HashMap<>());
+        
+        // Check if file exists in this session
+        String fileID = fileMap.get(fileName);
         if (fileID != null && fileIDToDocument.containsKey(fileID)) {
             return fileID;
         }
 
+        // Create new file
         fileID = UUID.randomUUID().toString();
         Document newDoc = new Document();
         ObjectId newTextId;
@@ -37,8 +39,8 @@ public class CRDTDocumentManager {
             tx.commit();
         }
 
-        sessionToFileName.put(key, fileID);
-        fileNameToFileID.put(fileName, fileID);
+        // Store the new file
+        fileMap.put(fileName, fileID);
         fileIDToDocument.put(fileID, newDoc);
         fileIDToTextId.put(fileID, newTextId);
 
@@ -99,21 +101,21 @@ public class CRDTDocumentManager {
     }
 
     public synchronized String getDocument(String sessionID, String fileID) {
-        // Find fileName by searching sessionToFileName for the fileID
+        // Find fileName for the given fileID in the session
+        Map<String, String> fileMap = sessionToFiles.get(sessionID);
+        if (fileMap == null) {
+            throw new IllegalArgumentException("No files found for sessionID: " + sessionID);
+        }
+
         String fileName = null;
-        for (Map.Entry<String, String> entry : sessionToFileName.entrySet()) {
-            if (entry.getValue().equals(fileID) && entry.getKey().startsWith(sessionID + ":")) {
-                fileName = entry.getKey().substring(sessionID.length() + 1);
+        for (Map.Entry<String, String> entry : fileMap.entrySet()) {
+            if (entry.getValue().equals(fileID)) {
+                fileName = entry.getKey();
                 break;
             }
         }
         if (fileName == null) {
             throw new IllegalArgumentException("File not found for sessionID: " + sessionID + " and fileID: " + fileID);
-        }
-
-        String mappedFileID = fileNameToFileID.get(fileName);
-        if (mappedFileID == null || !mappedFileID.equals(fileID)) {
-            throw new IllegalArgumentException("FileID not found for fileName: " + fileName);
         }
 
         Document doc = fileIDToDocument.get(fileID);
@@ -125,21 +127,54 @@ public class CRDTDocumentManager {
         return text.orElse("");
     }
 
-    public synchronized ObjectNode getDirectoryContent(String sessionID){
+    public synchronized ObjectNode getDirectoryContent(String sessionID) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode dirContent = objectMapper.createObjectNode();
-        for (Map.Entry<String, String> entry : sessionToFileName.entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith(sessionID + ":")) {
-                String fileName = key.substring(sessionID.length() + 1);
+        Map<String, String> fileMap = sessionToFiles.get(sessionID);
+        if (fileMap != null) {
+            for (Map.Entry<String, String> entry : fileMap.entrySet()) {
+                String fileName = entry.getKey();
                 String fileID = entry.getValue();
                 String content = getDocument(sessionID, fileID);
                 ObjectNode fileNode = objectMapper.createObjectNode();
                 fileNode.put("fileName", fileName);
+                fileNode.put("fileID", fileID); // Include fileID for frontend use
                 fileNode.put("content", content);
                 dirContent.set(fileName, fileNode);
             }
         }
         return dirContent;
+    }
+
+    public synchronized ObjectNode getAllFiles() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        java.util.List<ObjectNode> fileList = new java.util.ArrayList<>();
+
+        for (Map.Entry<String, Map<String, String>> sessionEntry : sessionToFiles.entrySet()) {
+            String sessionID = sessionEntry.getKey();
+            Map<String, String> fileMap = sessionEntry.getValue();
+            for (Map.Entry<String, String> fileEntry : fileMap.entrySet()) {
+                String fileName = fileEntry.getKey();
+                String fileID = fileEntry.getValue();
+
+                ObjectNode fileNode = objectMapper.createObjectNode();
+                fileNode.put("sessionID", sessionID);
+                fileNode.put("fileName", fileName);
+                fileNode.put("fileID", fileID);
+
+                fileList.add(fileNode);
+            }
+        }
+
+        // Sort by sessionID, then fileName
+        fileList.sort((a, b) -> {
+            int cmp = a.get("sessionID").asText().compareTo(b.get("sessionID").asText());
+            if (cmp != 0) return cmp;
+            return a.get("fileName").asText().compareTo(b.get("fileName").asText());
+        });
+
+        ObjectNode result = objectMapper.createObjectNode();
+        result.set("files", objectMapper.valueToTree(fileList));
+        return result;
     }
 }

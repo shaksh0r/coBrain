@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import { connectWebSocket, disconnectWebSocket, sendCode, requestDocumentState } from '../API/crdtwebsocket';
+import { connectWebSocket, disconnectWebSocket, sendCode, requestDocumentState, getAllFiles } from '../API/crdtwebsocket';
 import CopyButton from './buttons/CopyButton';
 import ContainerButton from './buttons/ContainerButton';
 import { useIDEContext } from '../Context/IDEContext';
@@ -43,11 +43,6 @@ const CodeEditor = () => {
     };
 
     const handleCloseTab = (fileName) => {
-
-        if ( Array.from(fileNameToFileId.entries()).length === 1){
-            window.location.reload();
-            return;
-        }
 
         const fileID = fileNameToFileId.get(fileName);
         setFileNameToFileId((prev) => {
@@ -264,39 +259,6 @@ const CodeEditor = () => {
         }
     };
 
-    const openFile = async (fileName) => {
-
-        let fileID = null;
-
-        if (fileNameToFileId.has(fileName)) {
-            fileID = fileNameToFileId.get(fileName);
-        } else {
-            try {
-                const response = await fetch('http://localhost:8080/api/files', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userID: clientIdRef.current,
-                        sessionID: sessionID,
-                        fileName: fileName,
-                    }),
-                });
-                if (!response.ok) throw new Error('Failed to create file');
-                const data = await response.json();
-                fileID = data.fileID;
-                setFileNameToFileId((prev) => new Map(prev).set(data.fileName, data.fileID));
-            } catch (error) {
-                console.error('Error creating file:', error);
-            }
-
-            if (Array.from(fileNameToFileId.values()).length === 0) {
-                setActiveFileId(fileID);
-            }
-        }
-    };
-
     const getEditorContent = () => {
         return editorRef.current?.getModel()?.getValue() || "";
     };
@@ -339,18 +301,6 @@ const CodeEditor = () => {
                             </button>
                         </span>
                     ))}
-                    <button
-                        onClick={() => {
-                            const fileName = prompt("Enter the name of the file to open:");
-                            if (fileName) {
-                                openFile(fileName);
-                            }
-                        }}
-
-                        style={{ color: 'white', backgroundColor: 'rgba(66, 66, 66, 1)', padding: '4px 8px' }}
-                    >
-                        +
-                    </button>
                 </div>
                 <button
                     onClick={() =>
@@ -373,6 +323,21 @@ const CodeEditor = () => {
                 <CopyButton
                     getEditorContent={getEditorContent}
                 />
+                <button
+                    onClick={async () => {
+                        const files = await getAllFiles();
+                        console.log(files);
+                    }}
+                    style={{
+                        background: '#333',
+                        color: 'white',
+                        border: 'none',
+                        padding: '4px 8px',
+                        marginLeft: '8px',
+                    }}
+                >
+                    Get All Files
+                </button>
             </div>
             <div style={{ height: '95%' }}>
                 {activeFileId ? (

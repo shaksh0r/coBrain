@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import CodeEditor from './CodeEditor.jsx';
+import Sessions from './Sessions.jsx';
 import Toolbar from './Toolbar.jsx';
 import Terminal from './Terminal.jsx';
+import LeftToolbar from './LeftToolbar';
 import IDEContext from '../Context/IDEContext.jsx';
-import { useState, useRef, useEffect } from 'react';
 import '../stylesheets/EditorPage.css';
 
 const EditorPage = () => {
@@ -11,7 +12,7 @@ const EditorPage = () => {
     const [userName, setUserName] = useState('');
 
     const stompClientRef = useRef(null);
-    const [sessionID, setSessionID] = useState("1");
+    const [sessionID, setSessionID] = useState('');
     const [fileNameToFileId, setFileNameToFileId] = useState(new Map());
     const [activeFileId, setActiveFileId] = useState(null);
     const [language, setLanguage] = useState(null);
@@ -59,6 +60,11 @@ const EditorPage = () => {
         setLanguage(languageMap[extension] || 'plaintext');
     }, [activeFileId, fileNameToFileId]);
 
+    useEffect(() => {
+        setFileNameToFileId(new Map());
+        setActiveFileId(null);
+    }, [sessionID]);
+
     const contextValue = {
         clientIdRef,
         stompClientRef,
@@ -73,13 +79,28 @@ const EditorPage = () => {
         language,
     };
 
+
+    const [activeKey, setActiveKey] = useState(null);
+
     return (
         <div className="editorpage-container">
             <IDEContext.Provider value={contextValue}>
                 <Toolbar />
-                <div className="main-content">
-                    <CodeEditor />
-                    <Terminal />
+                <div className="editorpage-main-area">
+                    <LeftToolbar
+                        activeKey={activeKey}
+                        setActiveKey={setActiveKey}
+                    />
+                    <div className="main-content">
+                        {activeKey === 'sessions' ? (
+                            <Sessions />
+                        ) : (
+                            <>
+                                <CodeEditor />
+                                <Terminal />
+                            </>
+                        )}
+                    </div>
                 </div>
             </IDEContext.Provider>
         </div>
