@@ -92,6 +92,20 @@ export async function getAllFiles() {
     }
 }
 
+export async function getFilesForSession(sessionID) {
+    try {
+        const response = await fetch(`http://localhost:8080/api/getFiles/${sessionID}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) throw new Error('Failed to retrieve files for session');
+        const data = await response.json();
+        return data.files || [];
+    } catch (error) {
+        console.error('Error retrieving files for session:', error);
+    }
+}
+
 export async function requestDocumentState(sessionID, fileID, clientIdRef) {
     try {
         const response = await fetch('http://localhost:8080/api/state', {

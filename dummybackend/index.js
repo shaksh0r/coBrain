@@ -68,7 +68,7 @@ app.post("/api/sessions/create", (req, res) => {
         createdAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + expirationHours * 3600000).toISOString(),
         active: true,
-        message: `Session created successfully ${sessionName}:${sessionId}`,
+        message: `Session created successfully ${sessionName}:${global_session_id - 1}`,
         users: [
             {
                 userId: "2105094",

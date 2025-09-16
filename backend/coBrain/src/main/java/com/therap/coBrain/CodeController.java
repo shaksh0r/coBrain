@@ -7,6 +7,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -94,5 +95,10 @@ public class CodeController {
     @GetMapping("/api/getAllFiles")
     public ObjectNode getAllFiles() {
         return crdtDocumentManager.getAllFiles();
+    }
+
+    @GetMapping("/api/getFiles/{sessionID}")
+    public ObjectNode getAllFilesForSession(@PathVariable String sessionID) {
+        return crdtDocumentManager.getAllFilesForSession(sessionID);
     }
 }

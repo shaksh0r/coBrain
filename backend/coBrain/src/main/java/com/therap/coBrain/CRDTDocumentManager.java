@@ -166,12 +166,36 @@ public class CRDTDocumentManager {
             }
         }
 
-        // Sort by sessionID, then fileName
         fileList.sort((a, b) -> {
             int cmp = a.get("sessionID").asText().compareTo(b.get("sessionID").asText());
             if (cmp != 0) return cmp;
             return a.get("fileName").asText().compareTo(b.get("fileName").asText());
         });
+
+        ObjectNode result = objectMapper.createObjectNode();
+        result.set("files", objectMapper.valueToTree(fileList));
+        return result;
+    }
+
+    public synchronized ObjectNode getAllFilesForSession(String sessionID) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        java.util.List<ObjectNode> fileList = new java.util.ArrayList<>();
+
+        Map<String, String> fileMap = sessionToFiles.get(sessionID);
+        if (fileMap != null) {
+            for (Map.Entry<String, String> fileEntry : fileMap.entrySet()) {
+                String fileName = fileEntry.getKey();
+                String fileID = fileEntry.getValue();
+
+                ObjectNode fileNode = objectMapper.createObjectNode();
+                fileNode.put("fileName", fileName);
+                fileNode.put("fileID", fileID);
+
+                fileList.add(fileNode);
+            }
+        }
+
+        fileList.sort((a, b) -> a.get("fileName").asText().compareTo(b.get("fileName").asText()));
 
         ObjectNode result = objectMapper.createObjectNode();
         result.set("files", objectMapper.valueToTree(fileList));
