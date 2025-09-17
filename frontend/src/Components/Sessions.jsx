@@ -8,7 +8,7 @@ const Sessions = () => {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { setSessionID, setExplorerFiles } = useIDEContext();
+    const { setSessionID, setExplorerFiles, sessionID } = useIDEContext();
     const [joinError, setJoinError] = useState(null);
 
     const getSessions = async () => {
@@ -85,6 +85,7 @@ const Sessions = () => {
                                         <button
                                             className="sessions-table-join-btn"
                                             onClick={() => handleJoinSession(session.sessionId)}
+                                            disabled={String(sessionID) === String(session.sessionId)}
                                         >
                                             Join
                                         </button>

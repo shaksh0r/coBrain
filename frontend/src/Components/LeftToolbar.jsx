@@ -38,7 +38,7 @@ const LeftToolbar = ({ activeKey, setActiveKey }) => {
                     className={`left-toolbar-button${activeKey === 'help' ? ' active' : ''}`}
                     title="Help"
                     onClick={() => {
-                        setActiveKey('help');
+                        window.open('https://github.com/shaksh0r/coBrain/blob/main/README.md', '_blank', 'noopener,noreferrer');
                     }}
                 >
                     <span className="left-toolbar-icon">❓</span>
@@ -47,7 +47,7 @@ const LeftToolbar = ({ activeKey, setActiveKey }) => {
                     className={`left-toolbar-button left-toolbar-settings${activeKey === 'settings' ? ' active' : ''}`}
                     title="Settings"
                     onClick={() => {
-                        setActiveKey('settings');
+                        console.log("Clicked settings");
                     }}
                 >
                     <span className="left-toolbar-icon">⚙️</span>

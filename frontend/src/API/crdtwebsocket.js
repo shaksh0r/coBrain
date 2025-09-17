@@ -24,9 +24,10 @@ export function connectWebSocket(onOperation, onCodeState, onFileResponse, clien
             try {
                 const payload = JSON.parse(message.body);
                 const fileID = payload.fileID;
+                const sessionID = payload.sessionID;
                 // console.log('Received:', payload);
                 if (typeof onOperation === 'function') {
-                    onOperation(fileID, message.body);
+                    onOperation(fileID, sessionID, message.body);
                 } else {
                     console.error('onOperation is not a function:', onOperation);
                 }
@@ -76,11 +77,12 @@ export function disconnectWebSocket(stompClient) {
     }
 }
 
-export function sendCode(stompClient, fileID, message) {
+export function sendCode(stompClient, fileID, sessionID, message) {
     if (stompClient && stompClient.active) {
         const payload = {
             ...message,
-            fileID: fileID
+            fileID: fileID,
+            sessionID: sessionID
         };
         //console.log("Sending:", payload);
         stompClient.publish({
@@ -139,7 +141,7 @@ export async function requestDocumentState(sessionID, fileID, clientIdRef) {
     }
 }
 
-export async function deleteFile(sessionID, fileName) {
+export async function deleteFile(sessionID, fileNames) {
     try {
         const response = await fetch(`http://localhost:8080/api/deleteFile`, {
             method: 'POST',
@@ -148,7 +150,7 @@ export async function deleteFile(sessionID, fileName) {
             },
             body: JSON.stringify({
                 sessionID,
-                fileName
+                fileNames
             }),
         });
         if (!response.ok) throw new Error('Failed to delete file');

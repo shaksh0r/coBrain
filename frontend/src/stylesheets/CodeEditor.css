@@ -26,3 +26,95 @@
     left: 0;
     top: 0;
 }
+
+.code-editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 75%;
+}
+
+.code-editor-top-bar {
+    height: 5%;
+    background-color: rgba(24, 24, 24, 1);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+}
+
+.code-editor-tabs {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.code-editor-tab-button {
+    background: none;
+    color: rgba(180, 180, 180, 1);
+    border: none;
+    padding: 4px 8px 4px 8px; /* Adjusted to reserve space for close icon */
+    cursor: pointer;
+    font-size: 13px;
+    transition: color 0.2s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-width: 80px; /* Ensures consistent width */
+}
+
+.code-editor-tab-button:hover {
+    background-color: rgba(60, 60, 60, 0.3); /* VS Code-like hover */
+}
+
+.code-editor-tab-button.active {
+    color: #ffffff;
+    border-top: 2px solid #007acc; /* Thicker top bar */
+}
+
+.code-editor-close-icon {
+    margin-left: 6px;
+    font-size: 13px;
+    color: rgba(180, 180, 180, 1);
+    cursor: pointer;
+    transition: color 0.2s;
+    visibility: hidden; /* Hidden by default */
+}
+
+.code-editor-tab-button:hover .code-editor-close-icon {
+    visibility: visible; /* Show on hover */
+}
+
+.code-editor-close-icon:hover {
+    color: #ff5555; /* Red on hover */
+}
+
+.code-editor-action-button {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+}
+
+.code-editor-action-button.margin-right {
+    margin-right: 8px;
+}
+
+.code-editor-action-button.margin-left {
+    margin-left: 8px;
+}
+
+.code-editor-area {
+    height: 95%;
+}
+
+.code-editor-no-file {
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: rgba(30, 30, 30, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(104, 104, 104, 0.5);
+    font-size: 1.2rem;
+    z-index: 1;
+}

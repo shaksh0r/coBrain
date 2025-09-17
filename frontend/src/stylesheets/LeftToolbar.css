@@ -1,71 +1,71 @@
 .left-toolbar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(30, 30, 30, 1);
-  width: 48px;
-  min-width: 48px;
-  height: 100%;
-  box-sizing: border-box;
-  padding: 0;
-  border-right: 1px solid rgba(43, 43, 43, 1);
-  box-shadow: 1px 0 2px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(30, 30, 30, 1);
+    width: 62px;
+    min-width: 62px;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    border-right: 1px solid rgba(43, 43, 43, 1);
+    box-shadow: 1px 0 2px rgba(0,0,0,0.04);
 }
 
 .left-toolbar-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 .left-toolbar-bottom {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0;
 }
 
 .left-toolbar-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 .left-toolbar-button {
-  background: none;
-  border: none;
-  color: rgba(204, 204, 204, 1);
-  width: 40px;
-  height: 40px;
-  margin: 4px 0;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  font-size: 18px;
-  position: relative;
+    background: none;
+    border: none;
+    color: rgba(204, 204, 204, 1);
+    width: 40px;
+    height: 40px;
+    margin: 6px 0;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-size: 18px;
+    position: relative;
 }
 
 .left-toolbar-button:hover,
 .left-toolbar-button.active {
-  background: rgba(60, 60, 60, 0.7);
-  color: #fff;
+    background: rgba(60, 60, 60, 0.7);
+    color: #fff;
 }
 
 .left-toolbar-icon {
-  font-size: 20px;
-  margin-bottom: 2px;
+    font-size: 28px;
+    margin-bottom: 2px;
 }
 
 /* Remove label styling since labels are not shown */
 
 .left-toolbar-settings {
-  margin-top: auto;
+    margin-top: auto;
 }

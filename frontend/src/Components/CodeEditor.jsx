@@ -4,6 +4,7 @@ import * as monaco from 'monaco-editor';
 import { connectWebSocket, disconnectWebSocket, sendCode, requestDocumentState, getAllFiles } from '../API/crdtwebsocket';
 import CopyButton from './buttons/CopyButton';
 import ContainerButton from './buttons/ContainerButton';
+import DebugWindow from './DebugWindow';
 import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/CodeEditor.css';
 
@@ -13,10 +14,15 @@ const CodeEditor = () => {
     const isProgrammaticChange = useRef(false);
     const decorationsRef = useRef([]);
     const [breakpoints, setBreakpoints] = useState(new Set());
+    const [isDebugOpen, setIsDebugOpen] = useState(false);
 
     useEffect(() => {
         const client = connectWebSocket(
-            (fileID, message) => {
+            (fileID, sessID, message) => {
+                if (sessID !== sessionID) {
+                    console.log('Operation ignored - sessionID does not match');
+                    return;
+                }
                 if (Array.from(fileNameToFileId.values()).includes(fileID)) {
                     if (fileID === activeFileId) {
                         handleRemoteOperation(fileID, message);
@@ -29,13 +35,12 @@ const CodeEditor = () => {
             },
             null,
             (fileEvent) => {
-                if (fileEvent.fileName && fileEvent.fileID) {
-                    if (fileEvent.action === "add"){
-                        setExplorerFiles(prev => [...prev, { fileName: fileEvent.fileName, fileID: fileEvent.fileID }]);
-                    }
-                    else if (fileEvent.action === "delete") {
-                        handleCloseTab(fileEvent.fileName);
-                        setExplorerFiles(prev => prev.filter(f => f.fileID !== fileEvent.fileID));
+                if (fileEvent.action === "add") {
+                    setExplorerFiles(prev => [...prev, { fileName: fileEvent.fileName, fileID: fileEvent.fileID }]);
+                } else if (fileEvent.action === "delete") {
+                    if (Array.isArray(fileEvent.fileNames) && Array.isArray(fileEvent.fileIDs)) {
+                        fileEvent.fileNames.forEach((fileName) => handleCloseTab(fileName));
+                        setExplorerFiles(prev => prev.filter(f => !fileEvent.fileIDs.includes(f.fileID)));
                     }
                 }
             },
@@ -64,11 +69,9 @@ const CodeEditor = () => {
     }, [activeFileId]);
 
     const handleCloseTab = (fileName) => {
-
+        console.log("Closing tab for file:", fileName);
         const fileID = fileNameToFileId.get(fileName);
-
         if (!fileID) return;
-
         setFileNameToFileId((prev) => {
             const newMap = new Map(prev);
             newMap.delete(fileName);
@@ -83,22 +86,18 @@ const CodeEditor = () => {
         editorRef.current = editor;
         editor.focus();
         console.log("Editor mounted");
-
         const content = await requestDocumentState(sessionID, activeFileId, clientIdRef);
         loadDocument(content);
-
         editor.updateOptions({
             glyphMargin: true,
             lineNumbersMinChars: 5,
         });
-
         editor.onMouseDown((e) => {
             if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
                 const lineNumber = e.target.position.lineNumber;
                 toggleBreakpoint(lineNumber);
             }
         });
-
         const model = editor.getModel();
         if (model) {
             model.onDidChangeContent(() => {
@@ -128,9 +127,7 @@ const CodeEditor = () => {
     const updateBreakpointDecorations = (bps = breakpoints) => {
         const model = editorRef.current?.getModel();
         if (!model) return;
-
         decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
-
         const newDecorations = Array.from(bps).map((lineNumber) => ({
             range: new monaco.Range(lineNumber, 1, lineNumber, 1),
             options: {
@@ -140,27 +137,21 @@ const CodeEditor = () => {
                 glyphMarginHoverMessage: { value: 'Breakpoint' },
             },
         }));
-
         decorationsRef.current = editorRef.current.deltaDecorations([], newDecorations);
     };
 
     const handleRemoteOperation = (fileID, msg) => {
         try {
             const op = JSON.parse(msg);
-
             if (op.clientId && op.clientId === clientIdRef.current) {
                 return;
             }
-
             if (fileID !== activeFileId || !editorRef.current) {
                 return;
             }
-
             const model = editorRef.current.getModel();
             if (!model) return;
-
             isProgrammaticChange.current = true;
-
             if (op.op === "insert") {
                 const pos = model.getPositionAt(op.index);
                 model.applyEdits([
@@ -191,12 +182,7 @@ const CodeEditor = () => {
                     },
                 ]);
             }
-
-            console.log("applying op", op);
-
             isProgrammaticChange.current = false;
-
-            updateBreakpointDecorations();
         } catch (e) {
             console.error("Bad operation:", msg, e);
         }
@@ -206,14 +192,11 @@ const CodeEditor = () => {
         if (isProgrammaticChange.current || !activeFileId) {
             return;
         }
-
         const model = editorRef.current?.getModel();
         if (!model || !event?.changes) return;
-
         event.changes.forEach((change) => {
             const start = model.getOffsetAt(change.range.getStartPosition());
             const op = { clientId: clientIdRef.current };
-
             if (change.text.length > 0 && change.rangeLength === 0) {
                 op.op = "insert";
                 op.index = start;
@@ -228,10 +211,8 @@ const CodeEditor = () => {
                 op.length = change.rangeLength;
                 op.value = change.text;
             }
-
-            sendCode(stompClientRef.current, activeFileId, op);
+            sendCode(stompClientRef.current, activeFileId, sessionID, op);
         });
-
         updateBreakpointDecorations();
     };
 
@@ -282,44 +263,34 @@ const CodeEditor = () => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '75%' }}>
-            <div
-                style={{
-                    height: '5%',
-                    backgroundColor: 'rgba(24, 24, 24, 1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0 16px',
-                }}
-            >
-                <div style={{ flexGrow: 1 }}>
+        <div className="code-editor-container">
+            <div className="code-editor-top-bar">
+                <div className="code-editor-tabs">
                     {Array.from(fileNameToFileId.entries()).map(([fileName, fileID]) => (
-                        <span key={fileID} style={{ marginRight: '8px' }}>
-                            <button
-                                onClick={() => handleTabSwitch(fileID)}
-                                style={{
-                                    background: fileID === activeFileId ? '#555' : '#333',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '4px 8px',
-                                }}
-                            >
-                                {fileName}
-                            </button>
-                            <button
-                                onClick={() => handleCloseTab(fileName)}
-                                style={{
-                                    background: '#333',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '4px 8px',
+                        <button
+                            key={fileID}
+                            onClick={() => handleTabSwitch(fileID)}
+                            className={fileID === activeFileId ? 'code-editor-tab-button active' : 'code-editor-tab-button'}
+                        >
+                            {fileName}
+                            <span
+                                className="code-editor-close-icon"
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent tab switch on close
+                                    handleCloseTab(fileName);
                                 }}
                             >
                                 x
-                            </button>
-                        </span>
+                            </span>
+                        </button>
                     ))}
                 </div>
+                <button
+                    onClick={() => setIsDebugOpen(true)}
+                    className="code-editor-action-button margin-right"
+                >
+                    Watches
+                </button>
                 <button
                     onClick={() =>
                         autoType(
@@ -327,37 +298,23 @@ const CodeEditor = () => {
                             100
                         )
                     }
-                    style={{
-                        background: '#333',
-                        color: 'white',
-                        border: 'none',
-                        padding: '4px 8px',
-                        marginRight: '8px',
-                    }}
+                    className="code-editor-action-button margin-right"
                 >
                     AutoType Demo
                 </button>
                 <ContainerButton />
-                <CopyButton
-                    getEditorContent={getEditorContent}
-                />
+                <CopyButton getEditorContent={getEditorContent} />
                 <button
                     onClick={async () => {
                         const files = await getAllFiles();
                         console.log(files);
                     }}
-                    style={{
-                        background: '#333',
-                        color: 'white',
-                        border: 'none',
-                        padding: '4px 8px',
-                        marginLeft: '8px',
-                    }}
+                    className="code-editor-action-button margin-left"
                 >
                     Get All Files
                 </button>
             </div>
-            <div style={{ height: '95%' }}>
+            <div className="code-editor-area">
                 {activeFileId ? (
                     <Editor
                         height="100%"
@@ -367,24 +324,12 @@ const CodeEditor = () => {
                         onChange={handleEditorChange}
                     />
                 ) : (
-                    <div
-                    style={{
-                        top: 0,
-                        left: 0,
-                        height: '100%',
-                        backgroundColor: 'rgba(30, 30, 30, 1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'rgba(104, 104, 104, 0.5)',
-                        fontSize: '1.2rem',
-                        zIndex: 1,
-                    }}
-                >
-                    No file selected. Open a file to start editing.
-                </div>
+                    <div className="code-editor-no-file">
+                        No file selected. Open a file to start editing.
+                    </div>
                 )}
             </div>
+            <DebugWindow isOpen={isDebugOpen} onClose={() => setIsDebugOpen(false)} />
         </div>
     );
 };

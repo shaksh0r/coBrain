@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RestController
@@ -97,15 +98,27 @@ public class CodeController {
     @PostMapping("/api/deleteFile")
     public ObjectNode deleteFile(@RequestBody ObjectNode request) throws Exception {
         String sessionID = request.get("sessionID").asText();
-        String fileName = request.get("fileName").asText();
+        // fileNames is expected to be an array
+        JsonNode fileNamesNode = request.get("fileNames");
+        if (fileNamesNode == null || !fileNamesNode.isArray()) {
+            throw new IllegalArgumentException("fileNames must be an array");
+        }
 
-        String fileID = crdtDocumentManager.deleteFile(sessionID, fileName);
+        ArrayNode fileIDs = objectMapper.createArrayNode();
+        ArrayNode fileNames = objectMapper.createArrayNode();
 
-        ObjectNode updateMsg = objectMapper.createObjectNode();
-        updateMsg.put("action", "delete");
-        updateMsg.put("fileName", fileName);
-        updateMsg.put("fileID", fileID);
-        messagingTemplate.convertAndSend("/topic/session/" + sessionID + "/files", updateMsg);
+        for (JsonNode fileNameNode : fileNamesNode) {
+            String fileName = fileNameNode.asText();
+            String fileID = crdtDocumentManager.deleteFile(sessionID, fileName);
+            fileIDs.add(fileID);
+            fileNames.add(fileName);
+        }
+
+        ObjectNode batchMsg = objectMapper.createObjectNode();
+        batchMsg.put("action", "delete");
+        batchMsg.set("fileIDs", fileIDs);
+        batchMsg.set("fileNames", fileNames);
+        messagingTemplate.convertAndSend("/topic/session/" + sessionID + "/files", batchMsg);
 
         ObjectNode response = objectMapper.createObjectNode();
         response.put("status", "success");
