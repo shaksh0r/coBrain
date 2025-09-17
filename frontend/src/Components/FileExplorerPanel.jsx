@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../stylesheets/FileExplorerPanel.css';
 import { SiJavascript, SiReact, SiPython, SiTypescript, SiHtml5, SiCss3, SiJson, SiMarkdown } from 'react-icons/si';
 import { FaFileAlt, FaJava } from 'react-icons/fa';
 import { useIDEContext } from '../Context/IDEContext.jsx';
+import { deleteFile } from '../API/crdtwebsocket.js';
 
 const getFileIcon = (fileName) => {
     if (!fileName || typeof fileName !== 'string') return <FaFileAlt />;
@@ -33,7 +34,8 @@ const getFileIcon = (fileName) => {
 };
 
 const FileExplorerPanel = () => {
-    const { openFile, setActiveFileId, explorerFiles, showFileExplorer } = useIDEContext();
+    const { openFile, setActiveFileId, explorerFiles, showFileExplorer, sessionID, setFileNameToFileId, fileNameToFileId, activeFileId, setExplorerFiles } = useIDEContext();
+    const [selectedFiles, setSelectedFiles] = useState(new Set());
 
     if (!showFileExplorer) return null;
 
@@ -46,9 +48,46 @@ const FileExplorerPanel = () => {
         }
     };
 
+    const handleCheckboxChange = (fileName) => {
+        setSelectedFiles(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(fileName)) {
+                newSet.delete(fileName);
+            } else {
+                newSet.add(fileName);
+            }
+            return newSet;
+        });
+    };
+
+    const handleDeleteSelected = async () => {
+        if (selectedFiles.size === 0) return;
+        try {
+            for (let fileName of selectedFiles) {
+                if (fileNameToFileId.get(fileName) === fileNameToFileId.get(activeFileId)) {
+                    setActiveFileId(null);
+                }
+                await deleteFile(sessionID, fileName);
+                setFileNameToFileId(prev => {
+                    const newMap = new Map(prev);
+                    newMap.delete(fileName);
+                    return newMap;
+                });
+                setExplorerFiles(prev => prev.filter(f => f.fileName !== fileName));
+            }
+        } catch (error) {
+            console.error('Error deleting files:', error);
+        }
+    }
+
     return (
         <div className="file-explorer-panel">
-            <div className="file-explorer-header">File Explorer</div>
+            <div className="file-explorer-header">
+                File Explorer
+                <button onClick={handleDeleteSelected} disabled={selectedFiles.size === 0} title="Delete Selected Files">
+                    <span className="file-explorer-delete-icon">🗑️</span>
+                </button>
+            </div>
             <div className="file-explorer-content">
                 {Array.isArray(explorerFiles) && explorerFiles.length > 0 ? (
                     <ul className="file-explorer-list">
@@ -60,10 +99,16 @@ const FileExplorerPanel = () => {
                                     key={fileName || idx}
                                     className="file-explorer-item"
                                     onClick={() => handleFileClick(fileName, fileID)}
-                                    style={{ cursor: 'pointer' }}
                                 >
                                     <span className="file-explorer-file-icon">{getFileIcon(fileName)}</span>
                                     <span className="file-explorer-file-name">{fileName}</span>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedFiles.has(fileName)}
+                                        onChange={() => handleCheckboxChange(fileName)}
+                                        style={{ marginRight: 8 }}
+                                        onClick={e => e.stopPropagation()}
+                                    />
                                 </li>
                             );
                         })}

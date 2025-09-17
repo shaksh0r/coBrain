@@ -142,7 +142,7 @@ export async function requestDocumentState(sessionID, fileID, clientIdRef) {
 export async function deleteFile(sessionID, fileName) {
     try {
         const response = await fetch(`http://localhost:8080/api/deleteFile`, {
-            method: 'DELETE',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
