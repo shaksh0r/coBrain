@@ -137,14 +137,11 @@ const EditorPage = () => {
                     />
                     <FileExplorerPanel />
                     <div className="main-content">
-                        {activeKey === 'sessions' ? (
-                            <Sessions />
-                        ) : (
-                            <>
-                                <CodeEditor />
-                                <Terminal />
-                            </>
-                        )}
+                        <div style={{ display: activeKey === 'sessions' ? 'none' : 'block', height: '100%' }}>
+                            <CodeEditor />
+                            <Terminal />
+                        </div>
+                        {activeKey === 'sessions' && <Sessions />}
                     </div>
                 </div>
             </IDEContext.Provider>

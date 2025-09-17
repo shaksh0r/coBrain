@@ -31,13 +31,6 @@ const CodeEditor = () => {
             (fileEvent) => {
                 if (fileEvent.fileName && fileEvent.fileID) {
                     if (fileEvent.action === "add"){
-                        setFileNameToFileId(prev => {
-                            if (prev.has(fileEvent.fileName)) return prev;
-                            const newMap = new Map(prev);
-                            newMap.set(fileEvent.fileName, fileEvent.fileID);
-                            return newMap;
-                        });
-
                         setExplorerFiles(prev => [...prev, { fileName: fileEvent.fileName, fileID: fileEvent.fileID }]);
                     }
                     else if (fileEvent.action === "remove") {
@@ -64,7 +57,7 @@ const CodeEditor = () => {
             console.log("Disconnecting WebSocket...");
             disconnectWebSocket(client);
         };
-    }, []);
+    }, [sessionID, setFileNameToFileId, setActiveFileId, fileNameToFileId, activeFileId]);
 
     const handleTabSwitch = async (fileID) => {
         clearBreakpoints();
