@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getUserSessions, joinSession } from '../API/sessionapi'
+import { getFilesForSession } from '../API/crdtwebsocket.js';
 import { useIDEContext } from '../Context/IDEContext.jsx';
 import '../stylesheets/SessionsTable.css';
 
@@ -7,7 +8,7 @@ const Sessions = () => {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { setSessionID } = useIDEContext();
+    const { setSessionID, setExplorerFiles } = useIDEContext();
     const [joinError, setJoinError] = useState(null);
 
     const getSessions = async () => {
@@ -31,6 +32,9 @@ const Sessions = () => {
             if (!token) throw new Error("Authentication token is missing");
             const response = await joinSession(token, sessionId);
             setSessionID(sessionId);
+            const response_fe = await getFilesForSession(sessionId);
+            setExplorerFiles(response_fe || []);
+            console.log(response_fe);
             console.log('joinSession response:', response);
         } catch (error) {
             setJoinError(error.message || "Failed to join session");

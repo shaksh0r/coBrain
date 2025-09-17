@@ -1,7 +1,7 @@
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
-export function connectWebSocket(onOperation, onCodeState, onFileResponse, clientIdRef) {
+export function connectWebSocket(onOperation, onCodeState, onFileResponse, clientIdRef, sessionID) {
     if (!clientIdRef || typeof clientIdRef.current === 'undefined') {
         console.error('clientIdRef is undefined or invalid, generating temporary ID');
         clientIdRef = { current: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` };
@@ -34,6 +34,18 @@ export function connectWebSocket(onOperation, onCodeState, onFileResponse, clien
                 console.error('Error parsing operation message:', e, 'Raw message:', message.body);
             }
         });
+
+        // Subscribe to /topic/session/{sessionID}/files for file events
+        if (sessionID && typeof onFileResponse === 'function') {
+            stompClient.subscribe(`/topic/session/${sessionID}/files`, (message) => {
+                try {
+                    const payload = JSON.parse(message.body);
+                    onFileResponse(payload);
+                } catch (e) {
+                    console.error('Error parsing file event message:', e, 'Raw message:', message.body);
+                }
+            });
+        }
     };
 
     stompClient.onStompError = (frame) => {
@@ -124,5 +136,25 @@ export async function requestDocumentState(sessionID, fileID, clientIdRef) {
         return data.content || '';
     } catch (error) {
         console.error('Error retrieving document contents:', error);
+    }
+}
+
+export async function deleteFile(sessionID, fileName) {
+    try {
+        const response = await fetch(`http://localhost:8080/api/deleteFile`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sessionID,
+                fileName
+            }),
+        });
+        if (!response.ok) throw new Error('Failed to delete file');
+        const data = await response.json();
+        return data.success || false;
+    } catch (error) {
+        console.error('Error deleting file:', error);
     }
 }

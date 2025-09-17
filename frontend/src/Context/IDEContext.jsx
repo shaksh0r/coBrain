@@ -12,6 +12,11 @@ const IDEContext = createContext({
     activeFileId: null,
     setActiveFileId: () => {},
     language: 'plaintext',
+    openFile: async (fileName) => {},
+    explorerFiles: [],
+    setExplorerFiles: () => {},
+    showFileExplorer: false,
+    setShowFileExplorer: () => {},
 });
 
 export const useIDEContext = () => useContext(IDEContext);

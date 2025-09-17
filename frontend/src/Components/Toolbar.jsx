@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import { useAuthContext } from '../Context/AuthContext.jsx';
 import { useIDEContext } from '../Context/IDEContext.jsx';
+import { getFilesForSession } from '../API/crdtwebsocket.js';
 import * as sessionApi from '../API/sessionapi.js';
 import Modal from './Modal.jsx';
 import '../stylesheets/Toolbar.css';
 
 const Toolbar = () => {
     const { setIsAuthenticated } = useAuthContext();
-    const { userName, setUserName, sessionID, setSessionID, setActiveFileId, openFile } = useIDEContext();
+    const { userName, setUserName, sessionID, setSessionID, setActiveFileId, openFile, setExplorerFiles } = useIDEContext();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showFileDropdown, setShowFileDropdown] = useState(false);
     const [showSessionsDropdown, setShowSessionsDropdown] = useState(false);
@@ -94,6 +95,9 @@ const Toolbar = () => {
             setSessionID(data.sessionID);
             setShowJoinModal(false);
             setError(null);
+            const response_fe = await getFilesForSession(data.sessionID);
+            setExplorerFiles(response_fe || []);
+            console.log(response_fe);
         } catch (error) {
             setError(error.message || "Failed to join session");
             console.error('joinSession error:', error.message);

@@ -6,7 +6,6 @@ import Toolbar from './Toolbar.jsx';
 import Terminal from './Terminal.jsx';
 import LeftToolbar from './LeftToolbar';
 import FileExplorerPanel from './FileExplorerPanel.jsx';
-import { getFilesForSession } from '../API/crdtwebsocket.js';
 import IDEContext from '../Context/IDEContext.jsx';
 import '../stylesheets/EditorPage.css';
 
@@ -18,6 +17,9 @@ const EditorPage = () => {
     const [fileNameToFileId, setFileNameToFileId] = useState(new Map());
     const [activeFileId, setActiveFileId] = useState(null);
     const [language, setLanguage] = useState(null);
+
+    const [explorerFiles, setExplorerFiles] = useState([]);
+    const [showFileExplorer, setShowFileExplorer] = useState(false);
 
     // Move openFile function from Toolbar.jsx
     const openFile = async (fileName) => {
@@ -108,34 +110,17 @@ const EditorPage = () => {
         setActiveFileId,
         language,
         openFile,
+        explorerFiles,
+        setExplorerFiles,
+        showFileExplorer,
+        setShowFileExplorer,
     };
 
     const [activeKey, setActiveKey] = useState(null);
-    const [showFileExplorer, setShowFileExplorer] = useState(false);
-    const [explorerFiles, setExplorerFiles] = useState([]);
 
     const handleToolbarClick = (key) => {
         if (key === 'explorer') {
-            setShowFileExplorer((prev) => {
-                const next = !prev;
-                if (next) {
-                    (async () => {
-                        if (sessionID) {
-                            try {
-                                const files = await getFilesForSession(sessionID);
-                                console.log('Fetched files for session:', files);
-                                setExplorerFiles(Array.isArray(files) ? files : []);
-                            } catch (err) {
-                                setExplorerFiles([]);
-                                console.error('Failed to fetch files for session', err);
-                            }
-                        } else {
-                            setExplorerFiles([]);
-                        }
-                    })();
-                }
-                return next;
-            });
+            setShowFileExplorer(!showFileExplorer);
         } else {
             setActiveKey(key);
         }
@@ -150,7 +135,7 @@ const EditorPage = () => {
                         activeKey={activeKey}
                         setActiveKey={handleToolbarClick}
                     />
-                    <FileExplorerPanel visible={showFileExplorer} files={explorerFiles} />
+                    <FileExplorerPanel />
                     <div className="main-content">
                         {activeKey === 'sessions' ? (
                             <Sessions />

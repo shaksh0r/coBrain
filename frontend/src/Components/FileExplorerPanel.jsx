@@ -32,10 +32,10 @@ const getFileIcon = (fileName) => {
     }
 };
 
-const FileExplorerPanel = ({ visible, files }) => {
-    const { openFile, setActiveFileId } = useIDEContext();
+const FileExplorerPanel = () => {
+    const { openFile, setActiveFileId, explorerFiles, showFileExplorer } = useIDEContext();
 
-    if (!visible) return null;
+    if (!showFileExplorer) return null;
 
     const handleFileClick = async (fileName, fileId) => {
         try {
@@ -50,9 +50,9 @@ const FileExplorerPanel = ({ visible, files }) => {
         <div className="file-explorer-panel">
             <div className="file-explorer-header">File Explorer</div>
             <div className="file-explorer-content">
-                {Array.isArray(files) && files.length > 0 ? (
+                {Array.isArray(explorerFiles) && explorerFiles.length > 0 ? (
                     <ul className="file-explorer-list">
-                        {files.map((file, idx) => {
+                        {explorerFiles.map((file, idx) => {
                             const fileName = file.fileName;
                             const fileID = file.fileID;
                             return (
