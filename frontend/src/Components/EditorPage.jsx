@@ -1,3 +1,4 @@
+// EditorPage.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import CodeEditor from './CodeEditor.jsx';
 import Sessions from './Sessions.jsx';
@@ -12,23 +13,51 @@ import '../stylesheets/EditorPage.css';
 const EditorPage = () => {
     const clientIdRef = useRef(null);
     const [userName, setUserName] = useState('');
-
     const stompClientRef = useRef(null);
     const [sessionID, setSessionID] = useState('');
     const [fileNameToFileId, setFileNameToFileId] = useState(new Map());
     const [activeFileId, setActiveFileId] = useState(null);
     const [language, setLanguage] = useState(null);
 
-    useEffect(() => {
+    // Move openFile function from Toolbar.jsx
+    const openFile = async (fileName) => {
+        let fileID = null;
+        if (fileNameToFileId.has(fileName)) {
+            fileID = fileNameToFileId.get(fileName);
+        } else {
+            try {
+                const response = await fetch('http://localhost:8080/api/files', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userID: clientIdRef.current,
+                        sessionID: sessionID,
+                        fileName: fileName,
+                    }),
+                });
+                if (!response.ok) throw new Error('Failed to create file');
+                const data = await response.json();
+                fileID = data.fileID;
+                setFileNameToFileId((prev) => new Map(prev).set(data.fileName, data.fileID));
+            } catch (error) {
+                console.error('Error creating file:', error);
+            }
+            if (Array.from(fileNameToFileId.values()).length === 0) {
+                setActiveFileId(fileID);
+            }
+        }
+        return fileID;
+    };
 
+    useEffect(() => {
         if (clientIdRef.current === null) {
             clientIdRef.current = localStorage.getItem("userId");
         }
-
         if (userName === '') {
             setUserName(localStorage.getItem("username"));
         }
-
         if (!activeFileId) {
             setLanguage(null);
             return;
@@ -40,7 +69,6 @@ const EditorPage = () => {
             setLanguage(null);
             return;
         }
-
         const extension = fileName.split('.').pop()?.toLowerCase();
         const languageMap = {
             java: 'java',
@@ -79,20 +107,18 @@ const EditorPage = () => {
         activeFileId,
         setActiveFileId,
         language,
+        openFile,
     };
-
 
     const [activeKey, setActiveKey] = useState(null);
     const [showFileExplorer, setShowFileExplorer] = useState(false);
     const [explorerFiles, setExplorerFiles] = useState([]);
 
-    // Custom handler for LeftToolbar to toggle File Explorer
     const handleToolbarClick = (key) => {
         if (key === 'explorer') {
             setShowFileExplorer((prev) => {
                 const next = !prev;
                 if (next) {
-                    // Only fetch files when toggling ON
                     (async () => {
                         if (sessionID) {
                             try {

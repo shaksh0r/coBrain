@@ -1,3 +1,4 @@
+// Toolbar.jsx
 import React, { useState } from 'react';
 import { useAuthContext } from '../Context/AuthContext.jsx';
 import { useIDEContext } from '../Context/IDEContext.jsx';
@@ -7,7 +8,7 @@ import '../stylesheets/Toolbar.css';
 
 const Toolbar = () => {
     const { setIsAuthenticated } = useAuthContext();
-    const { userName, setUserName, sessionID, setSessionID, fileNameToFileId, setFileNameToFileId, clientIdRef, setActiveFileId } = useIDEContext();
+    const { userName, setUserName, sessionID, setSessionID, setActiveFileId, openFile } = useIDEContext();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showFileDropdown, setShowFileDropdown] = useState(false);
     const [showSessionsDropdown, setShowSessionsDropdown] = useState(false);
@@ -62,9 +63,9 @@ const Toolbar = () => {
             }
             const expirationHours = data.expirationHours ? parseInt(data.expirationHours, 10) : 24;
             const response = await sessionApi.createSession(token, data.sessionName, data.description || '', expirationHours);
-            console.log('createSession response:', response); // Log response
+            console.log('createSession response:', response);
             setSessionID(response.sessionId);
-            setShowCreateModal(false); // Close modal
+            setShowCreateModal(false);
             setError(null);
         } catch (error) {
             setError(error.message || "Failed to create session");
@@ -89,9 +90,9 @@ const Toolbar = () => {
                 throw new Error("Authentication token is missing");
             }
             const response = await sessionApi.joinSession(token, data.sessionID);
-            console.log('joinSession response:', response); // Log response
+            console.log('joinSession response:', response);
             setSessionID(data.sessionID);
-            setShowJoinModal(false); // Close modal
+            setShowJoinModal(false);
             setError(null);
         } catch (error) {
             setError(error.message || "Failed to join session");
@@ -107,7 +108,7 @@ const Toolbar = () => {
                 throw new Error("Authentication token is missing");
             }
             const response = await sessionApi.leaveSession(token, sessionID);
-            console.log('leaveSession response:', response); // Log response
+            console.log('leaveSession response:', response);
             setSessionID('');
             setError(null);
         } catch (error) {
@@ -120,7 +121,7 @@ const Toolbar = () => {
         setError(null);
         setShowFileDropdown(false);
         setShowOpenFileModal(true);
-    }
+    };
 
     const performOpenFile = async (data) => {
         if (!data.fileName) {
@@ -128,47 +129,13 @@ const Toolbar = () => {
             return;
         }
         try {
-            await openFile(data.fileName);
+            const fileID = await openFile(data.fileName);
+            setActiveFileId(fileID);
             setShowOpenFileModal(false);
             setError(null);
         } catch (error) {
             setError("Failed to open file");
             console.error('openFile error:', error.message);
-        }
-    }
-
-    const openFile = async (fileName) => {
-
-        let fileID = null;
-
-        console.log('Current session:', sessionID);
-
-        if (fileNameToFileId.has(fileName)) {
-            fileID = fileNameToFileId.get(fileName);
-        } else {
-            try {
-                const response = await fetch('http://localhost:8080/api/files', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userID: clientIdRef.current,
-                        sessionID: sessionID,
-                        fileName: fileName,
-                    }),
-                });
-                if (!response.ok) throw new Error('Failed to create file');
-                const data = await response.json();
-                fileID = data.fileID;
-                setFileNameToFileId((prev) => new Map(prev).set(data.fileName, data.fileID));
-            } catch (error) {
-                console.error('Error creating file:', error);
-            }
-
-            if (Array.from(fileNameToFileId.values()).length === 0) {
-                setActiveFileId(fileID);
-            }
         }
     };
 

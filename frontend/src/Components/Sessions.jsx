@@ -41,6 +41,15 @@ const Sessions = () => {
         getSessions();
     }, []);
 
+    // Copy session ID to clipboard
+    const handleCopySessionId = async (sessionId) => {
+        try {
+            await navigator.clipboard.writeText(sessionId);
+        } catch (error) {
+            console.error("Failed to copy session ID:", error);
+        }
+    };
+
     return (
         <div className="sessions-table-container">
             <h2 className="sessions-table-title">Your Sessions</h2>
@@ -53,7 +62,6 @@ const Sessions = () => {
                 <table className="sessions-table">
                     <thead>
                         <tr>
-                            <th>Session ID</th>
                             <th>Name</th>
                             <th>Description</th>
                             <th>Created At</th>
@@ -65,24 +73,30 @@ const Sessions = () => {
                         {sessions && sessions.length > 0 ? (
                             sessions.map(session => (
                                 <tr key={session.sessionId}>
-                                    <td>{session.sessionId}</td>
                                     <td>{session.sessionName}</td>
                                     <td>{session.description}</td>
                                     <td>{new Date(session.createdAt).toLocaleString()}</td>
                                     <td>{new Date(session.expiresAt).toLocaleString()}</td>
-                                    <td>
+                                    <td style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                         <button
                                             className="sessions-table-join-btn"
                                             onClick={() => handleJoinSession(session.sessionId)}
                                         >
                                             Join
                                         </button>
+                                        <button
+                                            className="sessions-table-copy-btn"
+                                            title="Copy Session ID"
+                                            onClick={() => handleCopySessionId(session.sessionId)}
+                                        >
+                                            🔗
+                                        </button>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={6} style={{ textAlign: 'center', color: '#888' }}>No sessions found.</td>
+                                <td colSpan={5} style={{ textAlign: 'center', color: '#888' }}>No sessions found.</td>
                             </tr>
                         )}
                     </tbody>

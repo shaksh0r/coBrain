@@ -20,14 +20,14 @@ public class CRDTDocumentManager {
     private final Map<String, Document> fileIDToDocument = new HashMap<>();
     private final Map<String, ObjectId> fileIDToTextId = new HashMap<>();
 
-    public synchronized String getOrCreateFile(String sessionID, String fileName) {
+    public synchronized FileResult getOrCreateFile(String sessionID, String fileName) {
         // Get or create the inner map for this session
         Map<String, String> fileMap = sessionToFiles.computeIfAbsent(sessionID, k -> new HashMap<>());
-        
+
         // Check if file exists in this session
         String fileID = fileMap.get(fileName);
         if (fileID != null && fileIDToDocument.containsKey(fileID)) {
-            return fileID;
+            return new FileResult(fileID, false);
         }
 
         // Create new file
@@ -44,7 +44,17 @@ public class CRDTDocumentManager {
         fileIDToDocument.put(fileID, newDoc);
         fileIDToTextId.put(fileID, newTextId);
 
-        return fileID;
+        return new FileResult(fileID, true);
+    }
+
+    public synchronized void deleteFile(String sessionID, String fileName) {
+        Map<String, String> fileMap = sessionToFiles.get(sessionID);
+        if (fileMap == null || !fileMap.containsKey(fileName)) {
+            throw new IllegalArgumentException("File not found in session: " + sessionID + ", file: " + fileName);
+        }
+        String fileID = fileMap.remove(fileName);
+        fileIDToDocument.remove(fileID);
+        fileIDToTextId.remove(fileID);
     }
 
     public synchronized void insertText(String fileID, int index, String value) {

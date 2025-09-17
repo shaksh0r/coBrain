@@ -77,11 +77,37 @@ public class CodeController {
         String sessionID = request.get("sessionID").asText();
         String fileName = request.get("fileName").asText();
 
-        String fileID = crdtDocumentManager.getOrCreateFile(sessionID, fileName);
+        FileResult fileResult = crdtDocumentManager.getOrCreateFile(sessionID, fileName);
         ObjectNode response = objectMapper.createObjectNode();
-        response.put("fileID", fileID);
+        response.put("fileID", fileResult.fileID);
         response.put("fileName", fileName);
-        System.out.println("REST API response: fileID=" + fileID + ", fileName=" + fileName);
+        System.out.println("REST API response: fileID=" + fileResult.fileID + ", fileName=" + fileName);
+
+        if (fileResult.isNewFile) {
+            ObjectNode updateMsg = objectMapper.createObjectNode();
+            updateMsg.put("action", "add");
+            updateMsg.put("fileName", fileName);
+            updateMsg.put("fileID", fileResult.fileID);
+            messagingTemplate.convertAndSend("/topic/session/" + sessionID + "/files", updateMsg);
+        }
+
+        return response;
+    }
+
+    @PostMapping("/api/deleteFile")
+    public ObjectNode deleteFile(@RequestBody ObjectNode request) throws Exception {
+        String sessionID = request.get("sessionID").asText();
+        String fileName = request.get("fileName").asText();
+
+        crdtDocumentManager.deleteFile(sessionID, fileName);
+
+        ObjectNode updateMsg = objectMapper.createObjectNode();
+        updateMsg.put("action", "delete");
+        updateMsg.put("fileName", fileName);
+        messagingTemplate.convertAndSend("/topic/session/" + sessionID + "/files", updateMsg);
+
+        ObjectNode response = objectMapper.createObjectNode();
+        response.put("status", "success");
         return response;
     }
 
