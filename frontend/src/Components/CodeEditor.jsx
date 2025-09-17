@@ -6,7 +6,37 @@ import CopyButton from './buttons/CopyButton';
 import ContainerButton from './buttons/ContainerButton';
 import DebugWindow from './DebugWindow';
 import { useIDEContext } from '../Context/IDEContext';
+import { SiJavascript, SiReact, SiPython, SiTypescript, SiHtml5, SiCss3, SiJson, SiMarkdown } from 'react-icons/si';
+import { FaFileAlt, FaJava } from 'react-icons/fa';
 import '../stylesheets/CodeEditor.css';
+
+const getFileIcon = (fileName) => {
+    if (!fileName || typeof fileName !== 'string') return <FaFileAlt />;
+    const ext = fileName.split('.').pop().toLowerCase();
+    switch (ext) {
+        case 'js':
+            return <SiJavascript color="#f7e018" />;
+        case 'jsx':
+            return <SiReact color="#61dafb" />;
+        case 'ts':
+        case 'tsx':
+            return <SiTypescript color="#3178c6" />;
+        case 'java':
+            return <FaJava color="#e76f00" />;
+        case 'py':
+            return <SiPython color="#3776ab" />;
+        case 'html':
+            return <SiHtml5 color="#e34c26" />;
+        case 'css':
+            return <SiCss3 color="#1572b6" />;
+        case 'json':
+            return <SiJson color="#cbcb41" />;
+        case 'md':
+            return <SiMarkdown color="#4a4a4a" />;
+        default:
+            return <FaFileAlt />;
+    }
+};
 
 const CodeEditor = () => {
     const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId, stompClientRef, clientIdRef, language, setExplorerFiles } = useIDEContext();
@@ -272,7 +302,10 @@ const CodeEditor = () => {
                             onClick={() => handleTabSwitch(fileID)}
                             className={fileID === activeFileId ? 'code-editor-tab-button active' : 'code-editor-tab-button'}
                         >
-                            {fileName}
+                            <span className="tab-content">
+                                <span className="tab-file-icon">{getFileIcon(fileName)}</span>
+                                {fileName}
+                            </span>
                             <span
                                 className="code-editor-close-icon"
                                 onClick={(e) => {
@@ -280,7 +313,7 @@ const CodeEditor = () => {
                                     handleCloseTab(fileName);
                                 }}
                             >
-                                x
+                                ⨉
                             </span>
                         </button>
                     ))}
