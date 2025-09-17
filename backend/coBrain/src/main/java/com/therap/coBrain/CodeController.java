@@ -99,11 +99,12 @@ public class CodeController {
         String sessionID = request.get("sessionID").asText();
         String fileName = request.get("fileName").asText();
 
-        crdtDocumentManager.deleteFile(sessionID, fileName);
+        String fileID = crdtDocumentManager.deleteFile(sessionID, fileName);
 
         ObjectNode updateMsg = objectMapper.createObjectNode();
         updateMsg.put("action", "delete");
         updateMsg.put("fileName", fileName);
+        updateMsg.put("fileID", fileID);
         messagingTemplate.convertAndSend("/topic/session/" + sessionID + "/files", updateMsg);
 
         ObjectNode response = objectMapper.createObjectNode();

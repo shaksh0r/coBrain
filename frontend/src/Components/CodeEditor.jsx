@@ -8,7 +8,7 @@ import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/CodeEditor.css';
 
 const CodeEditor = () => {
-    const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId, stompClientRef, clientIdRef, language, explorerFiles, setExplorerFiles } = useIDEContext();
+    const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId, stompClientRef, clientIdRef, language, setExplorerFiles } = useIDEContext();
     const editorRef = useRef(null);
     const isProgrammaticChange = useRef(false);
     const decorationsRef = useRef([]);
@@ -33,19 +33,9 @@ const CodeEditor = () => {
                     if (fileEvent.action === "add"){
                         setExplorerFiles(prev => [...prev, { fileName: fileEvent.fileName, fileID: fileEvent.fileID }]);
                     }
-                    else if (fileEvent.action === "remove") {
-                        setFileNameToFileId(prev => {
-                            if (!prev.has(fileEvent.fileName)) return prev;
-                            const newMap = new Map(prev);
-                            newMap.delete(fileEvent.fileName);
-                            return newMap;
-                        });
-
+                    else if (fileEvent.action === "delete") {
+                        handleCloseTab(fileEvent.fileName);
                         setExplorerFiles(prev => prev.filter(f => f.fileID !== fileEvent.fileID));
-
-                        if (fileEvent.fileID === activeFileId) {
-                            setActiveFileId(null);
-                        }
                     }
                 }
             },
@@ -60,28 +50,32 @@ const CodeEditor = () => {
     }, [sessionID, setFileNameToFileId, setActiveFileId, fileNameToFileId, activeFileId]);
 
     const handleTabSwitch = async (fileID) => {
+        if (!fileID || !sessionID || editorRef.current === null) {
+            return;
+        }
         clearBreakpoints();
         const content = await requestDocumentState(sessionID, fileID, clientIdRef);
         loadDocument(content);
         setActiveFileId(fileID);
     };
 
+    useEffect(() => {
+        handleTabSwitch(activeFileId);
+    }, [activeFileId]);
+
     const handleCloseTab = (fileName) => {
 
         const fileID = fileNameToFileId.get(fileName);
+
+        if (!fileID) return;
+
         setFileNameToFileId((prev) => {
             const newMap = new Map(prev);
             newMap.delete(fileName);
             return newMap;
         });
         if (fileID === activeFileId) {
-            const remainingFiles = Array.from(fileNameToFileId.entries());
-            const newActive = remainingFiles.find(([name, id]) => id !== fileID);
-            if (newActive) {
-                handleTabSwitch(newActive[1]);
-            } else {
-                setActiveFileId(null);
-            }
+            setActiveFileId(null);
         }
     };
 
@@ -143,7 +137,7 @@ const CodeEditor = () => {
                 isWholeLine: true,
                 glyphMarginClassName: 'breakpoint',
                 linesDecorationsClassName: 'breakpoint-line',
-                glyphMarginHoverMessage: { value: 'Breakpoint' }, // Fixed: Use plain object for hover message
+                glyphMarginHoverMessage: { value: 'Breakpoint' },
             },
         }));
 

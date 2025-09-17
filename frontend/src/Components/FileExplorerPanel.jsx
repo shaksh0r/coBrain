@@ -64,16 +64,17 @@ const FileExplorerPanel = () => {
         if (selectedFiles.size === 0) return;
         try {
             for (let fileName of selectedFiles) {
-                if (fileNameToFileId.get(fileName) === fileNameToFileId.get(activeFileId)) {
+                await deleteFile(sessionID, fileName);
+                if (fileNameToFileId.get(fileName) === activeFileId) {
                     setActiveFileId(null);
                 }
-                await deleteFile(sessionID, fileName);
                 setFileNameToFileId(prev => {
                     const newMap = new Map(prev);
                     newMap.delete(fileName);
                     return newMap;
                 });
                 setExplorerFiles(prev => prev.filter(f => f.fileName !== fileName));
+                setSelectedFiles(new Set());
             }
         } catch (error) {
             console.error('Error deleting files:', error);

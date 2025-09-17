@@ -47,7 +47,7 @@ public class CRDTDocumentManager {
         return new FileResult(fileID, true);
     }
 
-    public synchronized void deleteFile(String sessionID, String fileName) {
+    public synchronized String deleteFile(String sessionID, String fileName) {
         Map<String, String> fileMap = sessionToFiles.get(sessionID);
         if (fileMap == null || !fileMap.containsKey(fileName)) {
             throw new IllegalArgumentException("File not found in session: " + sessionID + ", file: " + fileName);
@@ -55,6 +55,7 @@ public class CRDTDocumentManager {
         String fileID = fileMap.remove(fileName);
         fileIDToDocument.remove(fileID);
         fileIDToTextId.remove(fileID);
+        return fileID;
     }
 
     public synchronized void insertText(String fileID, int index, String value) {
