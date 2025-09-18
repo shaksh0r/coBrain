@@ -1,47 +1,18 @@
 import React, { useState } from 'react';
 import '../stylesheets/FileExplorerPanel.css';
-import { SiJavascript, SiReact, SiPython, SiTypescript, SiHtml5, SiCss3, SiJson, SiMarkdown } from 'react-icons/si';
-import { FaFileAlt, FaJava } from 'react-icons/fa';
 import { useIDEContext } from '../Context/IDEContext.jsx';
 import { deleteFile } from '../API/crdtwebsocket.js';
 
-const getFileIcon = (fileName) => {
-    if (!fileName || typeof fileName !== 'string') return <FaFileAlt />;
-    const ext = fileName.split('.').pop().toLowerCase();
-    switch (ext) {
-        case 'js':
-            return <SiJavascript color="#f7e018" />;
-        case 'jsx':
-            return <SiReact color="#61dafb" />;
-        case 'ts':
-        case 'tsx':
-            return <SiTypescript color="#3178c6" />;
-        case 'java':
-            return <FaJava color="#e76f00" />;
-        case 'py':
-            return <SiPython color="#3776ab" />;
-        case 'html':
-            return <SiHtml5 color="#e34c26" />;
-        case 'css':
-            return <SiCss3 color="#1572b6" />;
-        case 'json':
-            return <SiJson color="#cbcb41" />;
-        case 'md':
-            return <SiMarkdown color="#4a4a4a" />;
-        default:
-            return <FaFileAlt />;
-    }
-};
-
 const FileExplorerPanel = () => {
-    const { openFile, setActiveFileId, explorerFiles, showFileExplorer, sessionID, setFileNameToFileId, fileNameToFileId, activeFileId, setExplorerFiles } = useIDEContext();
+    const { setActiveFileId, explorerFiles, showFileExplorer, sessionID, getFileIcon,
+            setFileNameToFileId, fileNameToFileId, activeFileId, setExplorerFiles } = useIDEContext();
     const [selectedFiles, setSelectedFiles] = useState(new Set());
 
     if (!showFileExplorer) return null;
 
-    const handleFileClick = async (fileName, fileId) => {
+    const handleFileClick = async (fileName, fileID) => {
         try {
-            const fileID = await openFile(fileName);
+            setFileNameToFileId(prev => new Map(prev).set(fileName, fileID));
             setActiveFileId(fileID);
         } catch (error) {
             console.error('Error opening file:', error);

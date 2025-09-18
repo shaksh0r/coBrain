@@ -20,17 +20,14 @@ public class CRDTDocumentManager {
     private final Map<String, Document> fileIDToDocument = new HashMap<>();
     private final Map<String, ObjectId> fileIDToTextId = new HashMap<>();
 
-    public synchronized FileResult getOrCreateFile(String sessionID, String fileName) {
-        // Get or create the inner map for this session
+    public synchronized String createFile(String sessionID, String fileName) throws IllegalArgumentException {
         Map<String, String> fileMap = sessionToFiles.computeIfAbsent(sessionID, k -> new HashMap<>());
 
-        // Check if file exists in this session
         String fileID = fileMap.get(fileName);
         if (fileID != null && fileIDToDocument.containsKey(fileID)) {
-            return new FileResult(fileID, false);
+            throw new IllegalArgumentException("File already exists in session: " + sessionID + ", file: " + fileName);
         }
 
-        // Create new file
         fileID = UUID.randomUUID().toString();
         Document newDoc = new Document();
         ObjectId newTextId;
@@ -39,12 +36,11 @@ public class CRDTDocumentManager {
             tx.commit();
         }
 
-        // Store the new file
         fileMap.put(fileName, fileID);
         fileIDToDocument.put(fileID, newDoc);
         fileIDToTextId.put(fileID, newTextId);
 
-        return new FileResult(fileID, true);
+        return fileID;
     }
 
     public synchronized String deleteFile(String sessionID, String fileName) {
@@ -112,7 +108,6 @@ public class CRDTDocumentManager {
     }
 
     public synchronized String getDocument(String sessionID, String fileID) {
-        // Find fileName for the given fileID in the session
         Map<String, String> fileMap = sessionToFiles.get(sessionID);
         if (fileMap == null) {
             throw new IllegalArgumentException("No files found for sessionID: " + sessionID);
@@ -211,5 +206,17 @@ public class CRDTDocumentManager {
         ObjectNode result = objectMapper.createObjectNode();
         result.set("files", objectMapper.valueToTree(fileList));
         return result;
+    }
+
+    public synchronized String loadFile(String sessionID, String fileName, String content){
+        String fileID;
+        try {
+            fileID = createFile(sessionID, fileName);
+            setDocument(fileID, content);
+        } catch (Exception e) {
+            System.out.println("Error occurred while loading file: " + e.getMessage());
+            throw e;
+        }
+        return fileID;
     }
 }

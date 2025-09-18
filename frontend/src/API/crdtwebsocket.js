@@ -98,7 +98,6 @@ export async function getAllFiles() {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        if (!response.ok) throw new Error('Failed to retrieve all files');
         const data = await response.json();
         return data.files || [];
     } catch (error) {
@@ -112,7 +111,6 @@ export async function getFilesForSession(sessionID) {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        if (!response.ok) throw new Error('Failed to retrieve files for session');
         const data = await response.json();
         return data.files || [];
     } catch (error) {
@@ -133,11 +131,51 @@ export async function requestDocumentState(sessionID, fileID, clientIdRef) {
                 fileID: fileID,
             }),
         });
-        if (!response.ok) throw new Error('Failed to retrieve document contents');
         const data = await response.json();
         return data.content || '';
     } catch (error) {
         console.error('Error retrieving document contents:', error);
+    }
+}
+
+export async function createFile(sessionID, fileName, clientIdRef){
+    try {
+        const response = await fetch('http://localhost:8080/api/createFile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userID: clientIdRef.current,
+                sessionID,
+                fileName,
+            }),
+        });
+        const data = await response.json();
+        return data.fileID;
+    } catch (error) {
+        console.error('Error creating file:', error);
+    }
+}
+
+export async function loadFile(sessionID, fileName, clientIdRef, content){
+    try {
+        const response = await fetch(`http://localhost:8080/api/loadFile`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userID: clientIdRef.current,
+                sessionID,
+                fileName,
+                content
+            }),
+        });
+        const data = await response.json();
+        return data.fileID || '';
+    } catch (error) {
+        console.error('Error loading file:', error);
     }
 }
 
@@ -153,7 +191,6 @@ export async function deleteFile(sessionID, fileNames) {
                 fileNames
             }),
         });
-        if (!response.ok) throw new Error('Failed to delete file');
         const data = await response.json();
         return data.success || false;
     } catch (error) {

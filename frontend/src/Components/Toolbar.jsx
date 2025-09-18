@@ -1,15 +1,16 @@
 // Toolbar.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuthContext } from '../Context/AuthContext.jsx';
 import { useIDEContext } from '../Context/IDEContext.jsx';
-import { getFilesForSession } from '../API/crdtwebsocket.js';
+import { getFilesForSession, createFile, loadFile } from '../API/crdtwebsocket.js';
 import * as sessionApi from '../API/sessionapi.js';
 import Modal from './Modal.jsx';
 import '../stylesheets/Toolbar.css';
 
 const Toolbar = () => {
     const { setIsAuthenticated } = useAuthContext();
-    const { userName, setUserName, sessionID, setSessionID, setActiveFileId, openFile, setExplorerFiles } = useIDEContext();
+    const { userName, setUserName, sessionID, setSessionID, setActiveFileId, clientIdRef,
+            fileNameToFileId, setFileNameToFileId, explorerFiles, setExplorerFiles } = useIDEContext();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showFileDropdown, setShowFileDropdown] = useState(false);
     const [showSessionsDropdown, setShowSessionsDropdown] = useState(false);
@@ -17,6 +18,38 @@ const Toolbar = () => {
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [showOpenFileModal, setShowOpenFileModal] = useState(false);
     const [error, setError] = useState(null);
+
+    const fileDropdownRef = useRef(null);
+    const sessionsDropdownRef = useRef(null);
+    const profileDropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                fileDropdownRef.current && !fileDropdownRef.current.contains(event.target) &&
+                sessionsDropdownRef.current && !sessionsDropdownRef.current.contains(event.target) &&
+                profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)
+            ) {
+                setShowFileDropdown(false);
+                setShowSessionsDropdown(false);
+                setShowDropdown(false);
+            } else {
+                if (fileDropdownRef.current && !fileDropdownRef.current.contains(event.target)) {
+                    setShowFileDropdown(false);
+                }
+                if (sessionsDropdownRef.current && !sessionsDropdownRef.current.contains(event.target)) {
+                    setShowSessionsDropdown(false);
+                }
+                if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+                    setShowDropdown(false);
+                }
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const toggleDropdown = () => {
         setShowDropdown((prev) => !prev);
@@ -121,6 +154,73 @@ const Toolbar = () => {
         }
     };
 
+    const openFile = async (fileName) => {
+        let fileID = null;
+        if (fileNameToFileId.has(fileName)) {
+            fileID = fileNameToFileId.get(fileName);
+        } 
+        else if (explorerFiles.some(file => file.fileName === fileName)) {
+            fileID = explorerFiles.find(file => file.fileName === fileName).fileID;
+            setFileNameToFileId((prev) => new Map(prev).set(fileName, fileID));
+        }
+        else {
+            try {
+                fileID = await createFile(sessionID, fileName, clientIdRef);
+                setFileNameToFileId((prev) => new Map(prev).set(fileName, fileID));
+            } catch (error) {
+                console.error('Error creating file:', error);
+            }
+            if (Array.from(fileNameToFileId.values()).length === 0) {
+                setActiveFileId(fileID);
+            }
+        }
+        return fileID;
+    };
+
+
+    // File input ref for loading local files
+    const fileInputRef = useRef(null);
+
+    const handleLoadFile = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+            fileInputRef.current.click();
+        }
+        setShowFileDropdown(false);
+    };
+
+    const handleFileInputChange = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) {
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const content = event.target.result;
+            try {
+                if (fileNameToFileId.has(file.name)){
+                    setActiveFileId(fileNameToFileId.get(file.name));
+                    setShowFileDropdown(false);
+                    return;
+                }
+                if (explorerFiles.some(f => f.fileName === file.name)) {
+                    const fileID = explorerFiles.find(f => f.fileName === file.name).fileID;
+                    setFileNameToFileId((prev) => new Map(prev).set(file.name, fileID));
+                    setActiveFileId(fileID);
+                    setShowFileDropdown(false);
+                    return;
+                }
+
+                const fileID = await loadFile(sessionID, file.name, clientIdRef, content);
+                setFileNameToFileId((prev) => new Map(prev).set(file.name, fileID));
+                setActiveFileId(fileID);
+            } catch (error) {
+                setError('Failed to load file into editor');
+            }
+        };
+        reader.readAsText(file);
+    };
+
     const handleOpenFile = () => {
         setError(null);
         setShowFileDropdown(false);
@@ -146,18 +246,29 @@ const Toolbar = () => {
     return (
         <div className="top-bar">
             <div className="toolbar">
-                <div className="dropdown-container">
+                <div className="dropdown-container" ref={fileDropdownRef}>
                     <button className="toolbar-button" onClick={toggleFileDropdown}>
                         File
                     </button>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        onChange={handleFileInputChange}
+                        accept=".java,.js,.jsx,.ts,.tsx,.py,.pyw,.cpp,.cxx,.cc,.c,.h,.hpp,
+                        .cs,.go,.rb,.php,.swift,.kt,.kts,.rs,.scala,.sh,.bash,.zsh,.html,
+                        .css,.scss,.less,.json,.yaml,.yml,.xml,.md,.markdown,.txt,.dockerfile,
+                        .makefile,.ini,.conf,.toml,.bat,.ps1,.sql,.plist,.vue,.svelte,.astro,
+                        .dart,.groovy,.perl,.pl,.r,.tex,.latex,.coffee,.asm,.sol,.log"
+                    />
                     {showFileDropdown && (
                         <div className="dropdown-menu toolbar-dropdown">
                             <button className="dropdown-item" onClick={handleOpenFile} disabled={!sessionID}>New File</button>
-                            <button className="dropdown-item" onClick={handleOpenFile} disabled={!sessionID}>Open File</button>
+                            <button className="dropdown-item" onClick={handleLoadFile} disabled={!sessionID}>Open File...</button>
                         </div>
                     )}
                 </div>
-                <div className="dropdown-container">
+                <div className="dropdown-container" ref={sessionsDropdownRef}>
                     <button className="toolbar-button" onClick={toggleSessionsDropdown}>
                         Sessions
                     </button>
@@ -170,7 +281,7 @@ const Toolbar = () => {
                     )}
                 </div>
             </div>
-            <div className="profile-section">
+            <div className="profile-section" ref={profileDropdownRef}>
                 <button className="profile-button" onClick={toggleDropdown}>
                     <span className="profile-icon">{userName.charAt(0).toUpperCase()}</span>
                     {userName}
@@ -186,7 +297,7 @@ const Toolbar = () => {
             <Modal
                 show={showOpenFileModal}
                 onClose={() => setShowOpenFileModal(false)}
-                title="Open File"
+                title="New File"
                 inputs={[{ name: 'fileName', placeholder: 'Enter file name', label: 'File Name', type: 'text' }]}
                 onSubmit={performOpenFile}
                 submitLabel="Open"

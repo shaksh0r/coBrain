@@ -72,27 +72,62 @@ public class CodeController {
         }
     }
 
-    @PostMapping("/api/files")
+    @PostMapping("/api/createFile")
     public ObjectNode createFile(@RequestBody ObjectNode request) throws Exception {
         String userID = request.get("userID").asText();
         String sessionID = request.get("sessionID").asText();
         String fileName = request.get("fileName").asText();
 
-        FileResult fileResult = crdtDocumentManager.getOrCreateFile(sessionID, fileName);
-        ObjectNode response = objectMapper.createObjectNode();
-        response.put("fileID", fileResult.fileID);
-        response.put("fileName", fileName);
-        System.out.println("REST API response: fileID=" + fileResult.fileID + ", fileName=" + fileName);
+        try {
+            String fileID = crdtDocumentManager.createFile(sessionID, fileName);
+            ObjectNode response = objectMapper.createObjectNode();
+            response.put("fileID", fileID);
+            response.put("fileName", fileName);
+            System.out.println("REST API response: fileID=" + fileID + ", fileName=" + fileName);
 
-        if (fileResult.isNewFile) {
             ObjectNode updateMsg = objectMapper.createObjectNode();
             updateMsg.put("action", "add");
             updateMsg.put("fileName", fileName);
-            updateMsg.put("fileID", fileResult.fileID);
+            updateMsg.put("fileID", fileID);
             messagingTemplate.convertAndSend("/topic/session/" + sessionID + "/files", updateMsg);
-        }
 
-        return response;
+            return response;
+        } catch (Exception e) {
+            System.out.println("Error occurred while creating file: " + e.getMessage());
+            ObjectNode errorResponse = objectMapper.createObjectNode();
+            errorResponse.put("error", e.getMessage());
+            return errorResponse;
+        }
+    }
+
+    @PostMapping("/api/loadFile")
+    public ObjectNode loadFile(@RequestBody ObjectNode request) throws Exception {
+        String userID = request.get("userID").asText();
+        String sessionID = request.get("sessionID").asText();
+        String fileName = request.get("fileName").asText();
+        String content = request.get("content").asText();
+
+        try {
+            String fileID = crdtDocumentManager.loadFile(sessionID, fileName, content);
+            ObjectNode response = objectMapper.createObjectNode();
+            response.put("fileID", fileID);
+            response.put("fileName", fileName);
+            System.out.println("REST API response: fileID=" + fileID + ", fileName=" + fileName);
+
+            ObjectNode updateMsg = objectMapper.createObjectNode();
+            updateMsg.put("action", "add");
+            updateMsg.put("fileName", fileName);
+            updateMsg.put("fileID", fileID);
+            messagingTemplate.convertAndSend("/topic/session/" + sessionID + "/files", updateMsg);
+
+            return response;
+        }
+        catch (Exception e){
+            System.out.println("Error occurred while loading file: " + e.getMessage());
+            ObjectNode errorResponse = objectMapper.createObjectNode();
+            errorResponse.put("error", e.getMessage());
+            return errorResponse;
+        }
     }
 
     @PostMapping("/api/deleteFile")
