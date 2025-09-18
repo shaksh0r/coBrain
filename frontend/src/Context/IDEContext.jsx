@@ -18,6 +18,8 @@ const IDEContext = createContext({
     setShowFileExplorer: () => {},
     selectedFiles: new Set(),
     setSelectedFiles: () => {},
+    breakpoints: new Set(),
+    setBreakpoints: () => {},
     getFileIcon: () => null,
 });
 

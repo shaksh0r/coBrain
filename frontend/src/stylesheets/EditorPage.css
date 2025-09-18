@@ -8,21 +8,18 @@
     font-size: 12px;
 }
 
-/* Container for the whole editor page */
 .editorpage-container {
     display: flex;
     flex-direction: column;
     height: 100vh;
 }
 
-/* Main area: left toolbar + main content side by side */
 .editorpage-main-area {
     display: flex;
     flex: 1;
     height: 100%;
 }
 
-/* Main content area (editor, terminal) */
 .main-content {
     display: flex;
     flex-direction: column;

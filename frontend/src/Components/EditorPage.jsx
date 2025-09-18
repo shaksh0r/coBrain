@@ -22,6 +22,8 @@ const EditorPage = () => {
     const [showFileExplorer, setShowFileExplorer] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState(new Set());
 
+    const [breakpoints, setBreakpoints] = useState(new Set());
+
     useEffect(() => {
         if (clientIdRef.current === null) {
             clientIdRef.current = localStorage.getItem("userId");
@@ -67,6 +69,8 @@ const EditorPage = () => {
         setShowFileExplorer,
         selectedFiles,
         setSelectedFiles,
+        breakpoints,
+        setBreakpoints,
         getFileIcon,
     };
 

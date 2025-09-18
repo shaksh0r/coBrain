@@ -1,29 +1,30 @@
-.monaco-editor .margin .breakpoint {
-    content: ' ';
-    width: 12px; /* Reduced from 12px to make circles smaller */
-    height: 12px; /* Reduced from 12px to make circles smaller */
-    border-radius: 50%;
-    background-color: red;
-    margin: 3px auto; /* Adjusted to center smaller circles */
+.monaco-editor .breakpoint {
+    width: 10px !important;
+    height: 10px !important;
+    background-color: #d8310e !important;
+    border-radius: 50% !important;
+    margin-left: 14px !important;
+    margin-top: 5px !important;
+    cursor: pointer !important;
 }
 
-/* Optional: Line highlighting for breakpoint lines */
 .monaco-editor .breakpoint-line {
-    background-color: rgba(255, 0, 0, 0.1);
+    background-color: rgba(244, 135, 113, 0.1) !important;
+    border-left: 2px solid #d8310e !important;
 }
 
-/* New: Hover effect for unmarked lines in glyph margin */
-.monaco-editor .margin-view-overlays .glyph-margin:hover::before {
-    content: ' ';
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: rgba(255, 0, 0, 0.3); /* Faded red (30% opacity) */
-    margin: 3px auto;
-    display: block;
-    position: relative;
-    left: 0;
-    top: 0;
+.monaco-editor .breakpoint:hover {
+    background-color: #ff4e2a !important;
+}
+
+.monaco-editor .ghost-breakpoint {
+    width: 10px !important;
+    height: 10px !important;
+    background-color: rgba(216, 49, 14, 0.45) !important;
+    border-radius: 50% !important;
+    margin-left: 14px !important;
+    margin-top: 5px !important;
+    cursor: pointer !important;
 }
 
 .code-editor-container {
@@ -50,25 +51,25 @@
     background: none;
     color: rgba(180, 180, 180, 1);
     border: none;
-    padding: 10px 16px; /* Uniform padding, no extra for close icon */
+    padding: 10px 16px;
     cursor: pointer;
-    font-size: 14px; /* Larger font size */
+    font-size: 14px;
     transition: color 0.2s, background-color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 120px; /* Wider tabs */
+    min-width: 120px;
     position: relative;
 }
 
 .code-editor-tab-button:hover {
-    background-color: rgba(60, 60, 60, 0.3); /* VS Code-like hover */
+    background-color: rgba(60, 60, 60, 0.3);
 }
 
 .code-editor-tab-button.active {
     color: #ffffff;
     background-color: rgba(30, 30, 30, 1);
-    border-top: 1px solid #007acc; /* Thicker top bar */
+    border-top: 1px solid #007acc;
 }
 
 .code-editor-close-icon {
@@ -94,7 +95,7 @@
 }
 
 .code-editor-close-icon:hover {
-    color: #ff5555; /* Red on hover */
+    color: #ff5555;
 }
 
 .code-editor-action-button {

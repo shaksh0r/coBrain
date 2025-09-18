@@ -32,13 +32,13 @@
 }
 
 .terminal-tab-button:hover {
-    color: rgba(240, 240, 240, 1); /* VS Code-like hover color */
+    color: rgba(240, 240, 240, 1);
 }
 
 .terminal-tab-button.active {
     background: none;
     color: rgba(240, 240, 240, 1);
-    border-bottom: 1px solid rgb(33, 123, 207, 1); /* VS Code-like active underline */
+    border-bottom: 1px solid rgb(33, 123, 207, 1);
 }
 
 .terminal-output {

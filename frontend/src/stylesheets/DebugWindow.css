@@ -8,7 +8,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    pointer-events: none; /* Allow clicks to pass through */
+    pointer-events: none;
 }
 
 .debug-modal-content {
@@ -21,7 +21,7 @@
     color: rgba(204, 204, 204, 1);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     position: relative;
-    pointer-events: auto; /* Enable clicks on modal content */
+    pointer-events: auto;
 }
 
 .debug-modal-header {

@@ -9,12 +9,13 @@ import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/CodeEditor.css';
 
 const CodeEditor = () => {
-    const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId,
-          getFileIcon, stompClientRef, clientIdRef, language, setExplorerFiles } = useIDEContext();
+    const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId, getFileIcon,
+          breakpoints, setBreakpoints, stompClientRef, clientIdRef, language, setExplorerFiles } = useIDEContext();
     const editorRef = useRef(null);
     const isProgrammaticChange = useRef(false);
     const decorationsRef = useRef([]);
-    const [breakpoints, setBreakpoints] = useState(new Set());
+    const ghostDecorationRef = useRef([]);
+    const breakpointsRef = useRef(breakpoints);
     const [isDebugOpen, setIsDebugOpen] = useState(false);
 
     useEffect(() => {
@@ -89,15 +90,40 @@ const CodeEditor = () => {
         console.log("Editor mounted");
         const content = await requestDocumentState(sessionID, activeFileId, clientIdRef);
         loadDocument(content);
+
         editor.updateOptions({
             glyphMargin: true,
+            glyphMarginWidth: 28,
             lineNumbersMinChars: 5,
         });
+
         editor.onMouseDown((e) => {
             if (e.target.type === EditorNamespace.MouseTargetType.GUTTER_GLYPH_MARGIN) {
                 const lineNumber = e.target.position.lineNumber;
                 toggleBreakpoint(lineNumber);
             }
+        });
+
+        editor.onMouseMove((e) => {
+            if (e.target.type === EditorNamespace.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+                const lineNumber = e.target.position.lineNumber;
+                if (!breakpointsRef.current.has(lineNumber)) {
+                    ghostDecorationRef.current = editor.deltaDecorations(ghostDecorationRef.current, [{
+                        range: new Range(lineNumber, 1, lineNumber, 1),
+                        options: {
+                            glyphMarginClassName: 'ghost-breakpoint',
+                        },
+                    }]);
+                } else {
+                    ghostDecorationRef.current = editor.deltaDecorations(ghostDecorationRef.current, []);
+                }
+            } else {
+                ghostDecorationRef.current = editor.deltaDecorations(ghostDecorationRef.current, []);
+            }
+        });
+
+        editor.onMouseLeave(() => {
+            ghostDecorationRef.current = editor.deltaDecorations(ghostDecorationRef.current, []);
         });
         const model = editor.getModel();
         if (model) {
@@ -135,7 +161,7 @@ const CodeEditor = () => {
                 isWholeLine: true,
                 glyphMarginClassName: 'breakpoint',
                 linesDecorationsClassName: 'breakpoint-line',
-                glyphMarginHoverMessage: { value: 'Breakpoint' },
+                // glyphMarginHoverMessage: { value: 'Breakpoint' },
             },
         }));
         decorationsRef.current = editorRef.current.deltaDecorations([], newDecorations);
@@ -233,7 +259,8 @@ const CodeEditor = () => {
     };
 
     useEffect(() => {
-        console.log('Current breakpoints:', Array.from(breakpoints));
+        breakpointsRef.current = breakpoints;
+        // console.log('Current breakpoints:', Array.from(breakpoints));
     }, [breakpoints]);
 
     const autoType = async (text, delay = 100) => {
