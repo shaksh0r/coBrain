@@ -1,3 +1,5 @@
+import JSZip from 'jszip';
+import { requestDocumentState } from '../../API/crdtwebsocket';
 import { SiJavascript, SiReact, SiPython, SiTypescript, SiHtml5, SiCss3,
     SiJson, SiMarkdown, SiPhp, SiGo, SiRuby, SiSwift, SiKotlin, SiRust, SiScala,
     SiShell, SiYaml, SiXml, SiDocker, SiDart, SiPerl, SiR,
@@ -175,4 +177,14 @@ export const languageMap = {
     asm: 'asm',
     sol: 'solidity',
     log: 'plaintext',
+};
+
+export const zipDirectoryContent = async (explorerFiles, sessionID, clientIdRef, zipType = 'blob') => {
+    if (!explorerFiles || explorerFiles.length === 0) return null;
+    const zip = new JSZip();
+    for (const file of explorerFiles) {
+        const content = await requestDocumentState(sessionID, file.fileID, clientIdRef);
+        zip.file(file.fileName, content);
+    }
+    return await zip.generateAsync({ type: zipType });
 };

@@ -19,7 +19,6 @@ export function connectWebSocket(onOperation, onCodeState, onFileResponse, clien
     stompClient.onConnect = (frame) => {
         console.log('Connected: ' + frame);
 
-        // Subscribe to /code for CRDT operations
         stompClient.subscribe('/code', (message) => {
             try {
                 const payload = JSON.parse(message.body);
@@ -36,7 +35,6 @@ export function connectWebSocket(onOperation, onCodeState, onFileResponse, clien
             }
         });
 
-        // Subscribe to /topic/session/{sessionID}/files for file events
         if (sessionID && typeof onFileResponse === 'function') {
             stompClient.subscribe(`/topic/session/${sessionID}/files`, (message) => {
                 try {

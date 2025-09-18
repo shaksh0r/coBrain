@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Component
 public class CRDTDocumentManager {
-    private final Map<String, Map<String, String>> sessionToFiles = new HashMap<>(); // sessionID -> (fileName -> fileID)
+    private final Map<String, Map<String, String>> sessionToFiles = new HashMap<>();
     private final Map<String, Document> fileIDToDocument = new HashMap<>();
     private final Map<String, ObjectId> fileIDToTextId = new HashMap<>();
 
@@ -144,7 +144,7 @@ public class CRDTDocumentManager {
                 String content = getDocument(sessionID, fileID);
                 ObjectNode fileNode = objectMapper.createObjectNode();
                 fileNode.put("fileName", fileName);
-                fileNode.put("fileID", fileID); // Include fileID for frontend use
+                fileNode.put("fileID", fileID);
                 fileNode.put("content", content);
                 dirContent.set(fileName, fileNode);
             }

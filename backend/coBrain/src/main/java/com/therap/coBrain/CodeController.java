@@ -31,7 +31,6 @@ public class CodeController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Existing WebSocket handlers remain unchanged
     @MessageMapping("/code")
     @SendTo("/code")
     public String handleCode(@Payload String message) throws Exception {
@@ -133,7 +132,6 @@ public class CodeController {
     @PostMapping("/api/deleteFile")
     public ObjectNode deleteFile(@RequestBody ObjectNode request) throws Exception {
         String sessionID = request.get("sessionID").asText();
-        // fileNames is expected to be an array
         JsonNode fileNamesNode = request.get("fileNames");
         if (fileNamesNode == null || !fileNamesNode.isArray()) {
             throw new IllegalArgumentException("fileNames must be an array");

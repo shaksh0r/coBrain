@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
-import * as monaco from 'monaco-editor';
+import { Range, editor as EditorNamespace } from 'monaco-editor/esm/vs/editor/editor.api';
 import { connectWebSocket, disconnectWebSocket, sendCode, requestDocumentState, getAllFiles } from '../API/crdtwebsocket';
 import CopyButton from './buttons/CopyButton';
 import ContainerButton from './buttons/ContainerButton';
@@ -94,7 +94,7 @@ const CodeEditor = () => {
             lineNumbersMinChars: 5,
         });
         editor.onMouseDown((e) => {
-            if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+            if (e.target.type === EditorNamespace.MouseTargetType.GUTTER_GLYPH_MARGIN) {
                 const lineNumber = e.target.position.lineNumber;
                 toggleBreakpoint(lineNumber);
             }
@@ -130,7 +130,7 @@ const CodeEditor = () => {
         if (!model) return;
         decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
         const newDecorations = Array.from(bps).map((lineNumber) => ({
-            range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+            range: new Range(lineNumber, 1, lineNumber, 1),
             options: {
                 isWholeLine: true,
                 glyphMarginClassName: 'breakpoint',
@@ -157,7 +157,7 @@ const CodeEditor = () => {
                 const pos = model.getPositionAt(op.index);
                 model.applyEdits([
                     {
-                        range: new monaco.Range(pos.lineNumber, pos.column, pos.lineNumber, pos.column),
+                        range: new Range(pos.lineNumber, pos.column, pos.lineNumber, pos.column),
                         text: op.value,
                         forceMoveMarkers: true,
                     },
@@ -167,7 +167,7 @@ const CodeEditor = () => {
                 const end = model.getPositionAt(op.index + op.length);
                 model.applyEdits([
                     {
-                        range: new monaco.Range(start.lineNumber, start.column, end.lineNumber, end.column),
+                        range: new Range(start.lineNumber, start.column, end.lineNumber, end.column),
                         text: "",
                         forceMoveMarkers: true,
                     },
@@ -177,7 +177,7 @@ const CodeEditor = () => {
                 const end = model.getPositionAt(op.index + op.length);
                 model.applyEdits([
                     {
-                        range: new monaco.Range(start.lineNumber, start.column, end.lineNumber, end.column),
+                        range: new Range(start.lineNumber, start.column, end.lineNumber, end.column),
                         text: op.value,
                         forceMoveMarkers: true,
                     },
@@ -243,7 +243,7 @@ const CodeEditor = () => {
         for (let i = 0; i < text.length; i++) {
             model.applyEdits([
                 {
-                    range: new monaco.Range(
+                    range: new Range(
                         model.getLineCount(),
                         model.getLineMaxColumn(model.getLineCount()),
                         model.getLineCount(),
@@ -257,10 +257,6 @@ const CodeEditor = () => {
             editor.setPosition(endPosition);
             await new Promise((res) => setTimeout(res, delay));
         }
-    };
-
-    const getEditorContent = () => {
-        return editorRef.current?.getModel()?.getValue() || "";
     };
 
     return (
@@ -280,7 +276,7 @@ const CodeEditor = () => {
                             <span
                                 className="code-editor-close-icon"
                                 onClick={(e) => {
-                                    e.stopPropagation(); // Prevent tab switch on close
+                                    e.stopPropagation();
                                     handleCloseTab(fileName);
                                 }}
                             >
@@ -307,7 +303,7 @@ const CodeEditor = () => {
                     AutoType Demo
                 </button>
                 <ContainerButton />
-                <CopyButton getEditorContent={getEditorContent} />
+                <CopyButton />
                 <button
                     onClick={async () => {
                         const files = await getAllFiles();

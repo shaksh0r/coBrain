@@ -5,10 +5,9 @@ const Modal = ({ show, onClose, title, inputs = [], onSubmit, submitLabel = 'Sub
     const initialFormData = inputs.reduce((acc, input) => ({ ...acc, [input.name]: input.value || '' }), {});
     const [formData, setFormData] = useState(initialFormData);
 
-    // Reset formData when the modal is opened or closed
     useEffect(() => {
         if (show) {
-            setFormData(initialFormData); // Reset to initial state when modal opens
+            setFormData(initialFormData);
         }
     }, [show, inputs]);
 
@@ -22,12 +21,12 @@ const Modal = ({ show, onClose, title, inputs = [], onSubmit, submitLabel = 'Sub
         e.preventDefault();
         if (onSubmit) {
             onSubmit(formData);
-            setFormData(initialFormData); // Reset formData after submission
+            setFormData(initialFormData);
         }
     };
 
     const handleClose = () => {
-        setFormData(initialFormData); // Reset formData when closing
+        setFormData(initialFormData);
         onClose();
     };
 
@@ -47,7 +46,7 @@ const Modal = ({ show, onClose, title, inputs = [], onSubmit, submitLabel = 'Sub
                                     onChange={handleChange}
                                     placeholder={input.placeholder}
                                     className="modal-input"
-                                    min={input.min} // Support min attribute for number inputs
+                                    min={input.min}
                                 />
                             </div>
                         ))}

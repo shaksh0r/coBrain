@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import '../stylesheets/FileExplorerPanel.css';
 import { useIDEContext } from '../Context/IDEContext.jsx';
 import { deleteFile } from '../API/crdtwebsocket.js';
 
 const FileExplorerPanel = () => {
-    const { setActiveFileId, explorerFiles, showFileExplorer, sessionID, getFileIcon,
-            setFileNameToFileId, fileNameToFileId, activeFileId, setExplorerFiles } = useIDEContext();
-    const [selectedFiles, setSelectedFiles] = useState(new Set());
+    const { setActiveFileId, explorerFiles, showFileExplorer, sessionID, getFileIcon, selectedFiles,
+            setSelectedFiles, setFileNameToFileId, fileNameToFileId, activeFileId, setExplorerFiles } = useIDEContext();
 
     if (!showFileExplorer) return null;
 

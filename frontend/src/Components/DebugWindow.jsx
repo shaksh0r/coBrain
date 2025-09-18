@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import '../stylesheets/DebugWindow.css';
 
 const DebugWindow = ({ isOpen, onClose }) => {
-    // Sample watch data; replace with actual debugging state or props
     const [watches] = useState([
         { variable: 'counter', value: '42', type: 'int' },
         { variable: 'message', value: '"Hello World"', type: 'string' },
@@ -10,7 +9,6 @@ const DebugWindow = ({ isOpen, onClose }) => {
         { variable: 'array', value: '[1, 2, 3]', type: 'array' },
     ]);
 
-    // State for modal position
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const dragRef = useRef({ startX: 0, startY: 0 });
@@ -18,7 +16,6 @@ const DebugWindow = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     const handleMouseDown = (e) => {
-        // Prevent default to avoid text selection during drag
         e.preventDefault();
         setIsDragging(true);
         dragRef.current = {

@@ -1,16 +1,17 @@
-// Toolbar.jsx
 import React, { useState, useRef, useEffect } from 'react';
+import JSZip from 'jszip';
 import { useAuthContext } from '../Context/AuthContext.jsx';
 import { useIDEContext } from '../Context/IDEContext.jsx';
-import { getFilesForSession, createFile, loadFile } from '../API/crdtwebsocket.js';
+import { getFilesForSession, createFile, loadFile, requestDocumentState } from '../API/crdtwebsocket.js';
 import * as sessionApi from '../API/sessionapi.js';
+import { zipDirectoryContent } from './util/util.js';
 import Modal from './Modal.jsx';
 import '../stylesheets/Toolbar.css';
 
 const Toolbar = () => {
     const { setIsAuthenticated } = useAuthContext();
-    const { userName, setUserName, sessionID, setSessionID, setActiveFileId, clientIdRef,
-            fileNameToFileId, setFileNameToFileId, explorerFiles, setExplorerFiles } = useIDEContext();
+    const { userName, setUserName, sessionID, setSessionID, activeFileId, setActiveFileId, selectedFiles,
+          clientIdRef, fileNameToFileId, setFileNameToFileId, explorerFiles, setExplorerFiles } = useIDEContext();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showFileDropdown, setShowFileDropdown] = useState(false);
     const [showSessionsDropdown, setShowSessionsDropdown] = useState(false);
@@ -177,8 +178,6 @@ const Toolbar = () => {
         return fileID;
     };
 
-
-    // File input ref for loading local files
     const fileInputRef = useRef(null);
 
     const handleLoadFile = () => {
@@ -243,6 +242,56 @@ const Toolbar = () => {
         }
     };
 
+    const handleSaveFile = async () => {
+        const content = await requestDocumentState(sessionID, activeFileId, clientIdRef);
+        const blob = new Blob([content], { type: 'text/plain' });
+        const temp = document.createElement('a');
+        temp.href = URL.createObjectURL(blob);
+        temp.download = Array.from(fileNameToFileId.entries()).find(
+            ([, id]) => id === activeFileId
+        )?.[0];
+        document.body.appendChild(temp);
+        temp.click();
+        setTimeout(() => {
+            document.body.removeChild(temp);
+            URL.revokeObjectURL(temp.href);
+        }, 0);
+    };
+
+    const handleSaveSelected = async () => {
+        if (selectedFiles.length === 0) return;
+        const zip = new JSZip();
+        for (const file of explorerFiles) {
+            if (selectedFiles.has(file.fileName)) {
+                const content = await requestDocumentState(sessionID, file.fileID, clientIdRef);
+                zip.file(file.fileName, content);
+            }
+        }
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(zipBlob);
+        a.download = `selected_files-${sessionID}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }, 0);
+    };
+
+    const handleSaveDirectory = async () => {
+        const zipBlob = await zipDirectoryContent(explorerFiles, sessionID, clientIdRef);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(zipBlob);
+        a.download = `directory_${sessionID}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }, 0);
+    };
+
     return (
         <div className="top-bar">
             <div className="toolbar">
@@ -265,6 +314,9 @@ const Toolbar = () => {
                         <div className="dropdown-menu toolbar-dropdown">
                             <button className="dropdown-item" onClick={handleOpenFile} disabled={!sessionID}>New File</button>
                             <button className="dropdown-item" onClick={handleLoadFile} disabled={!sessionID}>Open File...</button>
+                            <button className="dropdown-item" onClick={handleSaveFile} disabled={!sessionID || activeFileId === null}>Save</button>
+                            <button className="dropdown-item" onClick={handleSaveSelected} disabled={!sessionID || selectedFiles.size === 0}>Save Selected</button>
+                            <button className="dropdown-item" onClick={handleSaveDirectory} disabled={!sessionID || explorerFiles.length === 0}>Save Directory</button>
                         </div>
                     )}
                 </div>

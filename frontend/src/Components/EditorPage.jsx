@@ -20,6 +20,7 @@ const EditorPage = () => {
 
     const [explorerFiles, setExplorerFiles] = useState([]);
     const [showFileExplorer, setShowFileExplorer] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState(new Set());
 
     useEffect(() => {
         if (clientIdRef.current === null) {
@@ -64,6 +65,8 @@ const EditorPage = () => {
         setExplorerFiles,
         showFileExplorer,
         setShowFileExplorer,
+        selectedFiles,
+        setSelectedFiles,
         getFileIcon,
     };
 

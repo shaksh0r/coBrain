@@ -1,13 +1,14 @@
 import React from 'react';
 import { useIDEContext } from '../../Context/IDEContext';
-import { copyCode, getDirContent } from '../../API/restapi';
+import { copyCode } from '../../API/container';
+import { zipDirectoryContent } from '../util/util';
 
-const CopyButton = ({ getEditorContent }) => {
-    const { sessionID, language } = useIDEContext();
+const CopyButton = () => {
+    const { sessionID, language, explorerFiles, clientIdRef } = useIDEContext();
 
     const handleClick = async () => {
-        const dirContent = await getDirContent(sessionID);
-        await copyCode(sessionID, language, dirContent);
+        const zipContent = await zipDirectoryContent(explorerFiles, sessionID, clientIdRef, 'base64');
+        await copyCode(sessionID, language, zipContent);
     };
 
     return (
