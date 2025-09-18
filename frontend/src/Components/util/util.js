@@ -2,8 +2,8 @@ import { SiJavascript, SiReact, SiPython, SiTypescript, SiHtml5, SiCss3,
     SiJson, SiMarkdown, SiPhp, SiGo, SiRuby, SiSwift, SiKotlin, SiRust, SiScala,
     SiShell, SiYaml, SiXml, SiDocker, SiDart, SiPerl, SiR,
     SiLatex, SiCoffeescript, SiVuedotjs, SiSvelte, SiAstro, SiC, SiCplusplus,
-    SiLess, SiScikitlearn, SiSqlite, SiMake } from 'react-icons/si';
-import { FaFileAlt, FaJava } from 'react-icons/fa';
+    SiLess, SiScikitlearn, SiMake } from 'react-icons/si';
+import { FaDatabase, FaFileAlt, FaJava } from 'react-icons/fa';
 
 export const getFileIcon = (fileName) => {
     if (!fileName || typeof fileName !== 'string') return <FaFileAlt />;
@@ -85,7 +85,7 @@ export const getFileIcon = (fileName) => {
         case 'ps1':
             return <FaFileAlt />;
         case 'sql':
-            return <SiSqlite color="#003b57" />;
+            return <FaDatabase color="#e86083" />;
         case 'vue':
             return <SiVuedotjs color="#42b883" />;
         case 'svelte':
