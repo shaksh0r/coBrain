@@ -9,8 +9,15 @@ import com.sandox.sandbox_service.service.java.JavaCodeExecution;
 import com.sandox.sandbox_service.service.java.JdbDebugger;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.file.*; // For temp dir and extraction
+import java.util.Comparator;
+import java.util.zip.*; // For ZipInputStream
+import java.nio.file.StandardCopyOption;
 
 @RestController
 public class ContainerController {
@@ -76,36 +83,99 @@ public class ContainerController {
         System.out.println("[TROUBLESHOOT] Execute done for userID: " + userID);
     }
 
-    @PostMapping("/copy")
-    public void copyContainer(@RequestBody Map<String, String> request) throws IOException, InterruptedException {
-        String userID = request.get("userID");
-        String directoryPath = request.get("directoryPath");
-        String language = request.get("language");
-        System.out.println("[TROUBLESHOOT] Copying for userID: " + userID + ", Language: " + language);
+    @PostMapping(value = "/copy", consumes = "multipart/form-data")
+    public void copyContainer(
+            @RequestParam("userID") String userID,
+            @RequestParam("language") String language,
+            @RequestParam("zipFile") MultipartFile zipFile  // The uploaded zip
+    ) throws IOException, InterruptedException {
+        System.out.println("[TROUBLESHOOT] Copying for userID: " + userID + ", Language: " + language + ", Zip size: " + zipFile.getSize());
+
+        // Optional: Validate zip
+        if (zipFile.isEmpty()) {
+            throw new IllegalArgumentException("Zip file is empty");
+        }
+        if (!"application/zip".equals(zipFile.getContentType()) && !"application/x-zip-compressed".equals(zipFile.getContentType())) {
+            throw new IllegalArgumentException("Invalid file type: expected ZIP");
+        }
+        // Add size limit, e.g., if (zipFile.getSize() > 10 * 1024 * 1024) { throw new IllegalArgumentException("File too large"); }
 
         String containerName;
         String adjustedPath;
         if ("cpp".equalsIgnoreCase(language)) {
             containerName = this.cppContainerManagement.getContainerName(userID);
-            adjustedPath =  directoryPath;
+            adjustedPath = extractZipToTempDir(zipFile);  // New method: extract and return temp path
             this.cppCodeExecution.copyDirectory(adjustedPath, containerName);
         } else if ("java".equalsIgnoreCase(language)) {
             containerName = this.javaContainerManagement.getContainerName(userID);
-            adjustedPath =  directoryPath;
+            adjustedPath = extractZipToTempDir(zipFile);
             this.javaCodeExecution.copyDirectory(adjustedPath, containerName);
-        } else if("debugCpp".equalsIgnoreCase(language)) {
+        } else if ("debugCpp".equalsIgnoreCase(language)) {
             containerName = this.cppContainerManagement.getContainerName(userID);
-            adjustedPath =  directoryPath;
+            adjustedPath = extractZipToTempDir(zipFile);
             this.gdbDebugger.copyDirectory(adjustedPath, containerName);
-        }else if("debugJava".equalsIgnoreCase(language)) {
-            containerName  = this.javaContainerManagement.getContainerName(userID);
-            adjustedPath =  directoryPath;
+        } else if ("debugJava".equalsIgnoreCase(language)) {
+            containerName = this.javaContainerManagement.getContainerName(userID);
+            adjustedPath = extractZipToTempDir(zipFile);
             this.jdbDebugger.copyDirectory(adjustedPath, containerName);
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Unsupported language: " + language);
         }
+
+        // Cleanup temp dir after copy (in a finally block or separate thread for safety)
+        cleanupTempDir(adjustedPath);
+
         System.out.println("[TROUBLESHOOT] Copying Container Name: " + containerName + ", Path: " + adjustedPath);
+    }
+
+    private String extractZipToTempDir(MultipartFile zipFile) throws IOException {
+        // Create unique temp dir per request (e.g., /tmp/code_abc123/)
+        Path tempDir = Files.createTempDirectory("code_");
+        System.out.println("[TROUBLESHOOT] Created temp dir: " + tempDir);
+
+        try (ZipInputStream zis = new ZipInputStream(zipFile.getInputStream())) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                // Security: Normalize path to prevent traversal (e.g., block paths outside tempDir)
+                Path filePath = tempDir.resolve(entry.getName()).normalize();
+                if (!filePath.startsWith(tempDir)) {
+                    throw new IOException("Invalid zip entry: potential path traversal - " + entry.getName());
+                }
+
+                if (entry.isDirectory()) {
+                    Files.createDirectories(filePath);
+                } else {
+                    // Ensure parent dirs exist
+                    Files.createDirectories(filePath.getParent());
+                    // Copy entry to file, overwriting if needed
+                    Files.copy(zis, filePath, StandardCopyOption.REPLACE_EXISTING);
+                }
+                zis.closeEntry();
+            }
+        } catch (IOException e) {
+            // Cleanup on error
+            cleanupTempDir(tempDir.toString());
+            throw e;
+        }
+
+        return tempDir.toString();  // Pass this path to copyDirectory
+    }
+
+    private void cleanupTempDir(String tempDirPath) {
+        try {
+            Path tempDir = Paths.get(tempDirPath);
+            if (Files.exists(tempDir)) {
+                // Recursively delete files/dirs in reverse order (dirs last)
+                Files.walk(tempDir)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+                System.out.println("[TROUBLESHOOT] Cleaned up temp dir: " + tempDirPath);
+            }
+        } catch (IOException e) {
+            System.out.println("[TROUBLESHOOT] Failed to cleanup temp dir " + tempDirPath + ": " + e.getMessage());
+            // Log but don't throw—cleanup is best-effort
+        }
     }
 
     @PostMapping("/compile")

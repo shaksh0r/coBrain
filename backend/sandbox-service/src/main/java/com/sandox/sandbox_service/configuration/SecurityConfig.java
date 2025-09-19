@@ -1,4 +1,5 @@
 package com.sandox.sandbox_service.configuration;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,7 +21,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/getContainer/**").permitAll()
+                        .requestMatchers("/getContainer/**", "/copy").permitAll() // Allow /copy without authentication
                         .anyRequest().authenticated()
                 );
         return http.build();
