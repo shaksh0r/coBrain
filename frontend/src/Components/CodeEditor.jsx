@@ -9,8 +9,21 @@ import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/CodeEditor.css';
 
 const CodeEditor = () => {
-    const { sessionID, fileNameToFileId, setFileNameToFileId, activeFileId, setActiveFileId, getFileIcon,
-          breakpoints, setBreakpoints, stompClientRef, clientIdRef, language, setExplorerFiles } = useIDEContext();
+    const {
+        sessionID,
+        fileNameToFileId,
+        setFileNameToFileId,
+        activeFileId,
+        setActiveFileId,
+        getFileIcon,
+        breakpoints,
+        setBreakpoints,
+        stompClientRef,
+        clientIdRef,
+        language,
+        setExplorerFiles,
+        setSelectedFiles,
+    } = useIDEContext();
     const editorRef = useRef(null);
     const isProgrammaticChange = useRef(false);
     const decorationsRef = useRef([]);
@@ -43,6 +56,11 @@ const CodeEditor = () => {
                     if (Array.isArray(fileEvent.fileNames) && Array.isArray(fileEvent.fileIDs)) {
                         fileEvent.fileNames.forEach((fileName) => handleCloseTab(fileName));
                         setExplorerFiles(prev => prev.filter(f => !fileEvent.fileIDs.includes(f.fileID)));
+                        setSelectedFiles(prev => {
+                            const newSet = new Set(prev);
+                            fileEvent.fileNames.forEach(fileName => newSet.delete(fileName));
+                            return newSet;
+                        });
                     }
                 }
             },

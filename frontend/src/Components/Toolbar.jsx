@@ -10,8 +10,20 @@ import '../stylesheets/Toolbar.css';
 
 const Toolbar = () => {
     const { setIsAuthenticated } = useAuthContext();
-    const { userName, setUserName, sessionID, setSessionID, activeFileId, setActiveFileId, selectedFiles,
-          clientIdRef, fileNameToFileId, setFileNameToFileId, explorerFiles, setExplorerFiles } = useIDEContext();
+    const {
+        userName,
+        setUserName,
+        sessionID,
+        setSessionID,
+        activeFileId,
+        setActiveFileId,
+        selectedFiles,
+        clientIdRef,
+        fileNameToFileId,
+        setFileNameToFileId,
+        explorerFiles,
+        setExplorerFiles,
+    } = useIDEContext();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showFileDropdown, setShowFileDropdown] = useState(false);
     const [showSessionsDropdown, setShowSessionsDropdown] = useState(false);

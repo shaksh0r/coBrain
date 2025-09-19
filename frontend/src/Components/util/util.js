@@ -27,10 +27,10 @@ export const getFileIcon = (fileName) => {
         case 'cxx':
         case 'cc':
         case 'hpp':
-        case 'h':
             return <SiCplusplus color="#00599c" />;
         case 'c':
-            return <SiC color="#555555" />;
+        case 'h':
+            return <SiC color="#548bc3ff" />;
         case 'cs':
             return <FaFileAlt />;
         case 'go':
@@ -70,7 +70,7 @@ export const getFileIcon = (fileName) => {
             return <SiXml color="#0060ac" />;
         case 'md':
         case 'markdown':
-            return <SiMarkdown color="#4a4a4a" />;
+            return <SiMarkdown color="#2aaacdff" />;
         case 'txt':
         case 'log':
             return <FaFileAlt />;
