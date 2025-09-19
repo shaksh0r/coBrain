@@ -18,6 +18,7 @@ export async function copyCode(sessionID, language, zipContent) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 "sessionID" : sessionID,
+                "directoryPath": "/src/main",
                 "directoryContent" : zipContent,
                 "language" : language
             })
@@ -29,6 +30,42 @@ export async function copyCode(sessionID, language, zipContent) {
         console.error(error.message);
     }
 };
+
+export async function compile(clientIdRef, language, sourcePath) {
+    try {
+        const response = await fetch(`http://localhost:${PORT_NUMBER}/api/compile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: clientIdRef.current,
+                language,
+                sourcePath
+            })
+        });
+        const jsonData = await response.json();
+        console.log(jsonData);
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+export async function run(clientIdRef, language, className = ''){
+    try {
+        const response = await fetch(`http://localhost:${PORT_NUMBER}/api/run`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: clientIdRef.current,
+                language,
+                className
+            })
+        });
+        const jsonData = await response.json();
+        console.log(jsonData);
+    } catch (error) {
+        console.error(error.message);
+    }
+}
 
 export async function getDirContent(sessionID) {
     try {
