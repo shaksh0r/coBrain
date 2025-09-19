@@ -13,7 +13,7 @@ public class ContainerCreation {
     private String language;
 
     public ContainerCreation() {
-        this.containerCount = 4;
+        this.containerCount = 2;
     }
 
     public Map<String,String> getContainerStatus(String language){
