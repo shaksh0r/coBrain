@@ -21,7 +21,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/getContainer/**", "/copy").permitAll() // Allow /copy without authentication
+                        .requestMatchers("/getContainer/**", "/copy",
+                                "/cpp/**", "/debugCpp/**", "/java/**", "/debugJava/**").permitAll() // Allow WebSocket endpoints
                         .anyRequest().authenticated()
                 );
         return http.build();
@@ -30,10 +31,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("*");
+        configuration.addAllowedOriginPattern("*"); // Use pattern for consistency with WebSocket
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false); // Changed to false for safety with wildcard origin
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

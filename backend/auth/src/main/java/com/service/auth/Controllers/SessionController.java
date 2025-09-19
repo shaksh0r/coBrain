@@ -55,6 +55,7 @@ public class SessionController {
     @GetMapping("/user")
     public ResponseEntity<?> getUserSessions(@RequestHeader("Authorization") String token) {
         try {
+            System.out.println("Entered getUserSessions");
             List<SessionResponse> sessions = sessionService.getUserSessions(token.replace("Bearer ", ""));
             return ResponseEntity.ok(sessions);
         } catch (Exception e) {

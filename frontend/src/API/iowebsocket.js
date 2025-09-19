@@ -8,8 +8,8 @@ export function sendInput(socket, input) {
 	}
 }
 
-export function connectTerminal(onMessage, language, sessionID) {
-	const wsUrl = `ws://localhost:${PORT_NUMBER}/${language}?userId=1`;
+export function connectTerminal(onMessage, language, userId) {
+	const wsUrl = `ws://localhost:${PORT_NUMBER}/${language}?userId=${userId}`;
 	const socket = new WebSocket(wsUrl);
 
 	socket.onopen = () => {

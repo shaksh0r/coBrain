@@ -112,6 +112,7 @@ const Toolbar = () => {
             const response = await sessionApi.createSession(token, data.sessionName, data.description || '', expirationHours);
             console.log('createSession response:', response);
             setSessionID(response.sessionId);
+            console.log("Session ID:",sessionID);
             setShowCreateModal(false);
             setError(null);
         } catch (error) {

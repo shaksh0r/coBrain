@@ -128,7 +128,9 @@ public class SessionService {
     }
 
     public List<SessionResponse> getUserSessions(String token) {
+        System.out.println("Entered getUserSessions");
         String userId = jwtUtil.extractUserId(token);
+        System.out.println("Getting sessions for user: " + userId);
     
         // Use native query to avoid loading entity relationships
         List<Session> sessions = sessionRepository.findSessionsByUserId(userId);

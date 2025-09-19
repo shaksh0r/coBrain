@@ -32,18 +32,18 @@ const EditorPage = () => {
             setUserName(localStorage.getItem("username"));
         }
         if (!activeFileId) {
-            setLanguage(null);
+            //setLanguage(null);
             return;
         }
         const fileName = Array.from(fileNameToFileId.entries()).find(
             ([, id]) => id === activeFileId
         )?.[0];
         if (!fileName) {
-            setLanguage(null);
+            //setLanguage(null);
             return;
         }
         const extension = fileName.split('.').pop()?.toLowerCase();
-        setLanguage(languageMap[extension] || 'plaintext');
+        //setLanguage(languageMap[extension] || 'plaintext');
     }, [activeFileId, fileNameToFileId]);
 
     useEffect(() => {

@@ -1,5 +1,5 @@
 // CHANGE TO WHATEVER PORT NUMBER YOU LIKE; THIS IS FOR BACKEND COPY AND GETCONTAINER
-const PORT_NUMBER = 3010;
+const PORT_NUMBER = 8081;
 
 
 export function sendDebugCmd(socket, input) {
@@ -8,8 +8,8 @@ export function sendDebugCmd(socket, input) {
 	}
 }
 
-export function connectDebug(onMessage, language, sessionID) {
-	const wsUrl = `ws://localhost:${PORT_NUMBER}/${language}?sessionID=${sessionID}`;
+export function connectDebug(onMessage, language, userId) {
+	const wsUrl = `ws://localhost:${PORT_NUMBER}/${language}?userId=${userId}`;
 	const socket = new WebSocket(wsUrl);
 
 	socket.onopen = () => {

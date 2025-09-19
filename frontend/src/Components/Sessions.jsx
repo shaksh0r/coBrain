@@ -3,6 +3,7 @@ import { getUserSessions, joinSession } from '../API/sessionapi'
 import { getFilesForSession } from '../API/crdtwebsocket.js';
 import { useIDEContext } from '../Context/IDEContext.jsx';
 import '../stylesheets/SessionsTable.css';
+import { Token } from 'monaco-editor';
 
 const Sessions = () => {
     const [sessions, setSessions] = useState([]);
@@ -14,7 +15,8 @@ const Sessions = () => {
     const getSessions = async () => {
         try {
             setLoading(true);
-            const response = await getUserSessions();
+            const response = await getUserSessions(localStorage.getItem("token"));
+            console.log("response:",response);
             setSessions(response.sessions);
             setError(null);
         } catch (error) {
@@ -42,6 +44,9 @@ const Sessions = () => {
     }
 
     useEffect(() => {
+
+    }, [sessions]);
+    useEffect(()=>{
         getSessions();
     }, []);
 
