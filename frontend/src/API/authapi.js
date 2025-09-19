@@ -1,5 +1,5 @@
 // CHANGE TO WHATEVER PORT NUMBER YOU LIKE; THIS IS FOR BACKEND COPY AND GETCONTAINER
-const PORT_NUMBER = 3010;
+const PORT_NUMBER = 8080;
 
 export async function registerUser(username, firstname, lastname, email, password) {
     try {

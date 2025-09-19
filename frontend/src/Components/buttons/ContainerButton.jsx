@@ -3,7 +3,8 @@ import { useIDEContext } from '../../Context/IDEContext';
 import { getContainer } from '../../API/restapi';
 
 const ContainerButton = () => {
-    const { sessionID, language } = useIDEContext();
+    const { sessionID} = useIDEContext();
+    const language = "java";
 
     const handleClick = async () => {
         await getContainer(sessionID, language);
