@@ -1,5 +1,5 @@
 // CHANGE TO WHATEVER PORT NUMBER YOU LIKE; THIS IS FOR BACKEND COPY AND GETCONTAINER
-const PORT_NUMBER = 3010;
+const PORT_NUMBER = 8081;
 
 
 export function sendInput(socket, input) {
@@ -9,7 +9,7 @@ export function sendInput(socket, input) {
 }
 
 export function connectTerminal(onMessage, language, sessionID) {
-	const wsUrl = `ws://localhost:${PORT_NUMBER}/${language}?sessionID=${sessionID}`;
+	const wsUrl = `ws://localhost:${PORT_NUMBER}/${language}?userId=1`;
 	const socket = new WebSocket(wsUrl);
 
 	socket.onopen = () => {

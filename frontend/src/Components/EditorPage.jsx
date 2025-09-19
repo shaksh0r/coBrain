@@ -16,7 +16,7 @@ const EditorPage = () => {
     const [sessionID, setSessionID] = useState('');
     const [fileNameToFileId, setFileNameToFileId] = useState(new Map());
     const [activeFileId, setActiveFileId] = useState(null);
-    const [language, setLanguage] = useState(null);
+    const [language, setLanguage] = useState("cpp");
 
     const [explorerFiles, setExplorerFiles] = useState([]);
     const [showFileExplorer, setShowFileExplorer] = useState(false);
