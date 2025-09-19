@@ -8,9 +8,21 @@
     font-size: 12px;
 }
 
+.editorpage-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.editorpage-main-area {
+    display: flex;
+    flex: 1;
+    height: 100%;
+}
+
 .main-content {
     display: flex;
     flex-direction: column;
     flex: 1;
-    overflow: hidden;
+    height: 100%;
 }

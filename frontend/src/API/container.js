@@ -1,7 +1,5 @@
-import JSZip from 'jszip';
-
 // CHANGE TO WHATEVER PORT NUMBER YOU LIKE; THIS IS FOR BACKEND COPY AND GETCONTAINER
-const PORT_NUMBER = 8080;
+const PORT_NUMBER = 3010;
 
 export async function getContainer(sessionID, language) {
     try {
@@ -9,21 +7,12 @@ export async function getContainer(sessionID, language) {
         const jsonData = await response.json();
         console.log(jsonData);
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
     }
 };
 
-export async function copyCode(sessionID, language, dirContent) {
+export async function copyCode(sessionID, language, zipContent) {
     try {
-        // Create a new ZIP file
-        const zip = new JSZip();
-        
-        // Add directory content as a JSON file
-        zip.file('directory_content.json', JSON.stringify(dirContent, null, 2));
-
-        // Generate the ZIP file
-       const zipContent = await zip.generateAsync({ type: 'base64' });
-
         const response = await fetch(`http://localhost:${PORT_NUMBER}/copy`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -37,9 +26,9 @@ export async function copyCode(sessionID, language, dirContent) {
         const jsonData = await response.json();
         console.log(jsonData);
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
     }
-}
+};
 
 export async function getDirContent(sessionID) {
     try {
@@ -55,4 +44,4 @@ export async function getDirContent(sessionID) {
     } catch (error) {
         console.log(error.message);
     }
-}
+};

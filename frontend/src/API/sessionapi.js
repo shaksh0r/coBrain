@@ -1,12 +1,12 @@
 // CHANGE TO WHATEVER PORT NUMBER YOU LIKE; THIS IS FOR BACKEND COPY AND GETCONTAINER
 const PORT_NUMBER = 3010;
 
-export async function createSession(token, sessionName, description, expirationHours = 24) {
+export async function createSession(token, sessionName, description = '', expirationHours = 24) {
     try {
         const response = await fetch(`http://localhost:${PORT_NUMBER}/api/sessions/create`, { 
             method: 'POST',
-            headers: { token },
-            body: JSON.stringify({ sessionName, description, expirationHours })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, sessionName, description, expirationHours })
         });
         const jsonData = await response.json();
         return jsonData;
@@ -20,7 +20,8 @@ export async function joinSession(token, sessionId) {
     try {
         const response = await fetch(`http://localhost:${PORT_NUMBER}/api/sessions/${sessionId}/join`, { 
             method: 'POST',
-            headers: { token }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
         });
         const jsonData = await response.json();
         return jsonData;
@@ -34,7 +35,8 @@ export async function leaveSession(token, sessionId) {
     try {
         const response = await fetch(`http://localhost:${PORT_NUMBER}/api/sessions/${sessionId}/leave`, { 
             method: 'POST',
-            headers: { token }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
         });
         const jsonData = await response.json();
         return jsonData;
@@ -44,11 +46,12 @@ export async function leaveSession(token, sessionId) {
     }
 };
 
-export async function getUserSessions(token) {
+export async function getUserSessions(token, userId) {
     try {
-        const response = await fetch(`http://localhost:${PORT_NUMBER}/api/sessions/user`, { 
-            method: 'GET',
-            headers: { token }
+        const response = await fetch(`http://localhost:${PORT_NUMBER}/api/sessions/user/${userId}`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
         });
         const jsonData = await response.json();
         return jsonData;

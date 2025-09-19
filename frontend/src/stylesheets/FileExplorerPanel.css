@@ -1,0 +1,96 @@
+.file-explorer-panel {
+    width: 240px;
+    min-width: 180px;
+    max-width: 320px;
+    height: 100%;
+    background: rgba(30, 30, 30, 1);
+    border-right: 1px solid rgba(43, 43, 43, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 1px 0 2px rgba(0,0,0,0.04);
+    z-index: 2;
+}
+
+.file-explorer-header {
+    display: flex;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(204, 204, 204, 1);
+    border-bottom: 1px solid rgba(43, 43, 43, 1);
+    background: rgba(37, 37, 38, 1);
+    align-items: center;
+    position: relative;
+}
+
+.file-explorer-header button {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.file-explorer-header button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.file-explorer-delete-icon {
+    color: #c00;
+    font-size: 1.2em;
+    margin-left: 0;
+}
+
+.file-explorer-content {
+    flex: 1;
+    padding: 16px;
+    color: rgba(204, 204, 204, 1);
+    overflow-y: auto;
+}
+
+.file-explorer-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 4px;
+}
+
+.file-explorer-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.file-explorer-item:hover {
+    background: #31363f;
+}
+
+.file-explorer-file-icon {
+    margin-right: 8px;
+    font-size: 16px;
+    color: #c5c5c5;
+}
+
+.file-explorer-file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.file-explorer-empty {
+    color: #888;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 32px;
+}

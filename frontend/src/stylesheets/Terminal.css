@@ -1,0 +1,59 @@
+.terminal-container {
+    display: flex;
+    flex-direction: column;
+    height: 25%;
+    border-top: 1px solid rgba(43, 43, 43, 1);
+    background-color: rgba(24, 24, 24, 1);
+    color: rgba(204, 204, 204, 1);
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.terminal-tabs {
+    height: 30px;
+    background-color: rgba(24, 24, 24, 1);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(43, 43, 43, 1);
+}
+
+.terminal-tab-button {
+    background: none;
+    color: rgba(140, 140, 140, 1);
+    border: none;
+    padding: 4px 16px;
+    margin-right: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    transition: background-color 0.2s;
+}
+
+.terminal-tab-button:hover {
+    color: rgba(240, 240, 240, 1);
+}
+
+.terminal-tab-button.active {
+    background: none;
+    color: rgba(240, 240, 240, 1);
+    border-bottom: 1px solid rgb(33, 123, 207, 1);
+}
+
+.terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.terminal-input {
+    background-color: rgba(20, 20, 20, 1);
+    color: rgba(204, 204, 204, 1);
+    border: none;
+    border-top: 1px solid rgba(43, 43, 43, 1);
+    padding: 10px;
+    outline: none;
+}

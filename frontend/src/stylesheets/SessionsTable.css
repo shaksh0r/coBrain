@@ -1,0 +1,96 @@
+.sessions-table-join-btn {
+    background-color: #007acc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.18s;
+    margin-right: 18px;
+}
+
+.sessions-table-copy-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.sessions-table-copy-btn:hover {
+    background: none;
+    color: inherit;
+}
+
+.sessions-table-copy-btn:active {
+    filter: grayscale(0.1) brightness(1.4);
+}
+
+.sessions-table-join-btn:hover:not(:disabled) {
+    background-color: #005f99;
+}
+
+.sessions-table-join-btn:disabled {
+    background-color: #444;
+    color: #aaa;
+    cursor: default;
+}
+
+.sessions-table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: transparent;
+    color: rgba(204, 204, 204, 1);
+    padding: 32px 0 0 0;
+}
+
+.sessions-table-title {
+    color: rgba(204, 204, 204, 1);
+    margin-bottom: 24px;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.sessions-table {
+    border-collapse: collapse;
+    width: 90%;
+    max-width: 900px;
+    background: rgba(30, 30, 30, 1);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.sessions-table th, .sessions-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(43, 43, 43, 1);
+    font-size: 15px;
+}
+
+.sessions-table th {
+    background: rgba(37, 37, 38, 1);
+    color: #bfc7d5;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.sessions-table tr:last-child td {
+    border-bottom: none;
+}
+
+.sessions-table tr:hover {
+    background: rgba(60, 60, 60, 0.18);
+}
+
+.sessions-table-loading, .sessions-table-error {
+    color: #bfc7d5;
+    font-size: 18px;
+    margin-top: 32px;
+}

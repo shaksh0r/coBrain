@@ -3,6 +3,7 @@ import { connectTerminal, disconnectTerminal, sendInput } from '../API/iowebsock
 import { connectDebug, disconnectDebug, sendDebugCmd } from '../API/debugwebsocket';
 import { connectProblems, disconnectProblems } from '../API/problemswebsocket';
 import { useIDEContext } from '../Context/IDEContext';
+import '../stylesheets/Terminal.css';
 
 const Terminal = () => {
     const { sessionID, language } = useIDEContext();
@@ -46,7 +47,6 @@ const Terminal = () => {
     }, [language, sessionID]);
 
     useEffect(() => {
-
     }, [activeTab]);
 
     const handleKeyDown = (e) => {
@@ -55,8 +55,7 @@ const Terminal = () => {
                 setTerminalOutputLines((prev) => [...prev, `> ${terminalCommand}`]);
                 sendInput(terminalSocketRef.current, terminalCommand + '\n');
                 setTerminalCommand('');
-            }
-            else if (activeTab === 'debug' && debugCommand.trim()) {
+            } else if (activeTab === 'debug' && debugCommand.trim()) {
                 setDebugOutputLines((prev) => [...prev, `> ${debugCommand}`]);
                 sendDebugCmd(debugSocketRef.current, debugCommand + '\n');
                 setDebugCommand('');
@@ -69,15 +68,7 @@ const Terminal = () => {
             case 'terminal':
                 return (
                     <>
-                        <div
-                            style={{
-                                flex: 1,
-                                overflowY: 'auto',
-                                padding: '10px',
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-all',
-                            }}
-                        >
+                        <div className="terminal-output">
                             {terminalOutputLines.map((line, index) => (
                                 <div key={index}>{line}</div>
                             ))}
@@ -87,14 +78,7 @@ const Terminal = () => {
                             value={terminalCommand}
                             onChange={(e) => setTerminalCommand(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            style={{
-                                backgroundColor: 'rgba(20, 20, 20, 1)',
-                                color: 'rgba(204, 204, 204, 1)',
-                                border: 'none',
-                                borderTop: '1px solid rgba(43, 43, 43, 1)',
-                                padding: '10px',
-                                outline: 'none',
-                            }}
+                            className="terminal-input"
                             placeholder=">"
                         />
                     </>
@@ -102,15 +86,7 @@ const Terminal = () => {
             case 'debug':
                 return (
                     <>
-                        <div
-                            style={{
-                                flex: 1,
-                                overflowY: 'auto',
-                                padding: '10px',
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-all',
-                            }}
-                        >
+                        <div className="terminal-output">
                             {debugOutputLines.map((line, index) => (
                                 <div key={index}>{line}</div>
                             ))}
@@ -120,14 +96,7 @@ const Terminal = () => {
                             value={debugCommand}
                             onChange={(e) => setDebugCommand(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            style={{
-                                backgroundColor: 'rgba(20, 20, 20, 1)',
-                                color: 'rgba(204, 204, 204, 1)',
-                                border: 'none',
-                                borderTop: '1px solid rgba(43, 43, 43, 1)',
-                                padding: '10px',
-                                outline: 'none',
-                            }}
+                            className="terminal-input"
                             placeholder=">"
                         />
                     </>
@@ -135,15 +104,7 @@ const Terminal = () => {
             case 'problems':
                 return (
                     <>
-                        <div
-                            style={{
-                                flex: 1,
-                                overflowY: 'auto',
-                                padding: '10px',
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-all',
-                            }}
-                        >
+                        <div className="terminal-output">
                             {problemsOutputLines.map((line, index) => (
                                 <div key={index}>{line}</div>
                             ))}
@@ -156,42 +117,13 @@ const Terminal = () => {
     };
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                height: '25%',
-                borderTop: '1px solid rgba(43, 43, 43, 1)',
-                backgroundColor: 'rgba(24, 24, 24, 1)',
-                color: 'rgba(204, 204, 204, 1)',
-                fontFamily: 'monospace',
-                fontSize: '14px'
-            }}
-        >
-            <div
-                style={{
-                    height: '30px',
-                    backgroundColor: 'rgba(24, 24, 24, 1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0 16px',
-                    borderBottom: '1px solid rgba(43, 43, 43, 1)',
-                }}
-            >
-                {['problems', 'debug', 'terminal',].map((tab) => (
+        <div className="terminal-container">
+            <div className="terminal-tabs">
+                {['problems', 'debug', 'terminal'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        style={{
-                            background: activeTab === tab ? '#555' : '#333',
-                            color: 'white',
-                            border: 'none',
-                            padding: '4px 12px',
-                            marginRight: '8px',
-                            cursor: 'pointer',
-                            fontFamily: 'monospace',
-                            fontSize: '14px',
-                        }}
+                        className={activeTab === tab ? 'terminal-tab-button active' : 'terminal-tab-button'}
                     >
                         {tab.toUpperCase()}
                     </button>
