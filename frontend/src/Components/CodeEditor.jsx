@@ -347,8 +347,9 @@ const CodeEditor = () => {
                 >
                     AutoType Demo
                 </button>
-                <button className="code-editor-action-button margin-right">
-                    onClick={() => getContainer(sessionID, language)}
+                <button className="code-editor-action-button margin-right"
+                    onClick={() => getContainer(sessionID, language)}>
+                        getContainer
                 </button>
                 <button className="code-editor-action-button margin-right"
                     onClick={async () => {

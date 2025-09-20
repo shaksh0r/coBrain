@@ -7,6 +7,7 @@ import com.sandox.sandbox_service.service.cpp.GdbDebugger;
 import com.sandox.sandbox_service.service.java.JavaContainerManagement;
 import com.sandox.sandbox_service.service.java.JavaCodeExecution;
 import com.sandox.sandbox_service.service.java.JdbDebugger;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -60,18 +61,25 @@ public class ContainerController {
     }
 
     @GetMapping("/getContainer/{userID}/{language}")
-    public String getContainer(@PathVariable String userID, @PathVariable String language) {
+    public ResponseEntity<?> getContainer(@PathVariable String userID, @PathVariable String language) {
         System.out.println("[TROUBLESHOOT] UserID: " + userID + ", Language: " + language);
+
         String containerName;
         if ("cpp".equalsIgnoreCase(language)) {
             containerName = this.cppContainerManagement.getContainer(userID);
         } else if ("java".equalsIgnoreCase(language)) {
             containerName = this.javaContainerManagement.getContainer(userID);
         } else {
-            return "Error: Unsupported language: " + language;
+            return ResponseEntity.badRequest().body(Map.of("error", "Unsupported language: " + language));
         }
-        return "Container Name: " + containerName;
+
+        return ResponseEntity.ok(Map.of(
+                "userID", userID,
+                "language", language,
+                "containerName", containerName
+        ));
     }
+
 
     @PostMapping("/run")
     public void run(@RequestBody Map<String, String> request) throws IOException, InterruptedException {
@@ -87,7 +95,7 @@ public class ContainerController {
     public void copyContainer(
             @RequestParam("userID") String userID,
             @RequestParam("language") String language,
-            @RequestParam("zipFile") MultipartFile zipFile  // The uploaded zip
+            @RequestParam("directoryContent") MultipartFile zipFile  // The uploaded zip
     ) throws IOException, InterruptedException {
         System.out.println("[TROUBLESHOOT] Copying for userID: " + userID + ", Language: " + language + ", Zip size: " + zipFile.getSize());
 

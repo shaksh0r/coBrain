@@ -75,7 +75,16 @@ const Sessions = () => {
                             <th>Description</th>
                             <th>Created At</th>
                             <th>Expires At</th>
-                            <th></th>
+                            <th style={{ textAlign: 'right', minWidth: '110px' }}>
+                                <button
+                                    onClick={getSessions}
+                                    className="sessions-table-refresh-btn"
+                                    title="Refresh Sessions"
+                                    style={{ display: 'flex', alignItems: 'center', background: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', float: 'right' }}
+                                >
+                                    <span style={{ fontSize: '18px', marginRight: '6px' }}>&#x21bb;</span> Refresh
+                                </button>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>

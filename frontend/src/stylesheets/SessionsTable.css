@@ -19,6 +19,33 @@
     border-radius: 4px;
 }
 
+sessions-table-refresh-btn {
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.18s, box-shadow 0.18s;
+    box-shadow: 0 1px 3px rgba(25, 118, 210, 0.08);
+    outline: none;
+}
+
+.sessions-table-refresh-btn:hover:not(:disabled) {
+    background-color: #1565c0;
+}
+
+.sessions-table-refresh-btn:active {
+    background-color: #0d47a1;
+}
+
+.sessions-table-refresh-btn:focus {
+    box-shadow: 0 0 0 2px #90caf9;
+}
+
 .sessions-table-copy-btn:hover {
     background: none;
     color: inherit;

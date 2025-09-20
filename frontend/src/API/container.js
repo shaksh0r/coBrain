@@ -13,7 +13,7 @@ export async function getContainer(sessionID, language) {
 
 export async function copyCode(sessionID, language, zipContent) {
     try {
-        const response = await fetch(`http://localhost:${PORT_NUMBER}/copy`, {
+        await fetch(`http://localhost:${PORT_NUMBER}/copy`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -24,8 +24,8 @@ export async function copyCode(sessionID, language, zipContent) {
             })
         });
         
-        const jsonData = await response.json();
-        console.log(jsonData);
+        //const jsonData = await response.json();
+        //console.log(jsonData);
     } catch (error) {
         console.error(error.message);
     }
