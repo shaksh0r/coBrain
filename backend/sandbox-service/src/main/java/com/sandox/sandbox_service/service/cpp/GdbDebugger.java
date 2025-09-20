@@ -144,7 +144,7 @@ public class GdbDebugger extends TextWebSocketHandler {
         this.containerAssignment = containerAssignment;
     }
 
-    public void compile(String userID, String className, String language) throws IOException, InterruptedException {
+    public void compile(String userID, String className, String language,String Directory) throws IOException, InterruptedException {
         System.out.println("[TROUBLESHOOT] Starting execute for userID: " + userID);
         System.out.println("[TROUBLESHOOT] Current userToSession map: " + userToSession);
 
@@ -170,10 +170,12 @@ public class GdbDebugger extends TextWebSocketHandler {
                 }
                 System.out.println("[TROUBLESHOOT] Container found for user " + userID + ": " + containerName);
 
+                String compilationPath = Directory + "/" + className;
+                System.out.println("[TROUBLESHOOT] compilationPath: " + compilationPath);
                 // Start the execution process
                 Process process = new ProcessBuilder(
                         "docker", "exec", "-i", containerName,
-                        "g++","-g", className, "-o", "main").start();
+                        "g++","-g", compilationPath, "-o", "main").start();
 
                 BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream()));
@@ -319,6 +321,8 @@ public class GdbDebugger extends TextWebSocketHandler {
                 BufferedWriter stdin = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 
                 ContainerIO io = new ContainerIO(stdout, stderr, stdin);
+                System.out.println("UserID: " + userID);
+                System.out.println("io"+io);
                 executionContainerIOMap.put(userID, io);
                 System.out.println("[TROUBLESHOOT] ContainerIO created and mapped for user " + userID);
 
@@ -404,7 +408,7 @@ public class GdbDebugger extends TextWebSocketHandler {
 
                 // Cleanup
                 stdin.close();
-                executionContainerIOMap.remove(userID);
+                //executionContainerIOMap.remove(userID);
                 System.out.println("[TROUBLESHOOT] Cleaned up for user " + userID + ". containerIOMap now: " + executionContainerIOMap.keySet());
 
                 if (session.isOpen()) {

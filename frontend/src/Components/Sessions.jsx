@@ -3,13 +3,18 @@ import { getUserSessions, joinSession } from '../API/sessionapi'
 import { getFilesForSession } from '../API/crdtwebsocket.js';
 import { useIDEContext } from '../Context/IDEContext.jsx';
 import '../stylesheets/SessionsTable.css';
-import { Token } from 'monaco-editor';
 
 const Sessions = () => {
-    const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { setSessionID, setExplorerFiles, sessionID } = useIDEContext();
+    const {
+        setSessionID,
+        setExplorerFiles,
+        sessionID,
+        sessions,
+        setSessions
+    } = useIDEContext();
+    
     const [joinError, setJoinError] = useState(null);
 
     const getSessions = async () => {
@@ -43,14 +48,10 @@ const Sessions = () => {
         }
     }
 
-    useEffect(() => {
-
-    }, [sessions]);
     useEffect(()=>{
         getSessions();
     }, []);
 
-    // Copy session ID to clipboard
     const handleCopySessionId = async (sessionId) => {
         try {
             await navigator.clipboard.writeText(sessionId);
@@ -75,16 +76,7 @@ const Sessions = () => {
                             <th>Description</th>
                             <th>Created At</th>
                             <th>Expires At</th>
-                            <th style={{ textAlign: 'right', minWidth: '110px' }}>
-                                <button
-                                    onClick={getSessions}
-                                    className="sessions-table-refresh-btn"
-                                    title="Refresh Sessions"
-                                    style={{ display: 'flex', alignItems: 'center', background: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', float: 'right' }}
-                                >
-                                    <span style={{ fontSize: '18px', marginRight: '6px' }}>&#x21bb;</span> Refresh
-                                </button>
-                            </th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>

@@ -10,8 +10,10 @@ import com.sandox.sandbox_service.service.java.JdbDebugger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +21,11 @@ import java.nio.file.*; // For temp dir and extraction
 import java.util.Comparator;
 import java.util.zip.*; // For ZipInputStream
 import java.nio.file.StandardCopyOption;
-
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.file.*; // For temp dir and extraction
+import java.util.Comparator;
+import java.util.zip.*; // For ZipInputStream
+import java.nio.file.StandardCopyOption;
 @RestController
 public class ContainerController {
     private final ContainerCreation containerCreation;
@@ -69,7 +75,12 @@ public class ContainerController {
             containerName = this.cppContainerManagement.getContainer(userID);
         } else if ("java".equalsIgnoreCase(language)) {
             containerName = this.javaContainerManagement.getContainer(userID);
-        } else {
+        } else if("debugCpp".equalsIgnoreCase(language)) {
+            containerName = this.cppContainerManagement.getContainer(userID);
+        }else if ("debugJava".equalsIgnoreCase(language)) {
+            containerName = this.javaContainerManagement.getContainer(userID);
+        }
+        else {
             return ResponseEntity.badRequest().body(Map.of("error", "Unsupported language: " + language));
         }
 
@@ -91,8 +102,10 @@ public class ContainerController {
         System.out.println("[TROUBLESHOOT] Execute done for userID: " + userID);
     }
 
+
+
     @PostMapping(value = "/copy")
-    public void copyContainer(
+    public ResponseEntity<?> copyContainer(
             @RequestParam("userID") String userID,
             @RequestParam("language") String language,
             @RequestParam("directoryContent") MultipartFile zipFile  // The uploaded zip
@@ -106,13 +119,17 @@ public class ContainerController {
         if (!"application/zip".equals(zipFile.getContentType()) && !"application/x-zip-compressed".equals(zipFile.getContentType())) {
             throw new IllegalArgumentException("Invalid file type: expected ZIP");
         }
+        // Add size limit, e.g., if (zipFile.getSize() > 10 * 1024 * 1024) { throw new IllegalArgumentException("File too large"); }
 
         String containerName;
         String adjustedPath;
+        String directoryName="";
         if ("cpp".equalsIgnoreCase(language)) {
             containerName = this.cppContainerManagement.getContainerName(userID);
-            adjustedPath = extractZipToTempDir(zipFile);
-            // Copy contents of the temp directory, not the directory itself
+            System.out.println("Container Name: " + containerName);
+            adjustedPath = extractZipToTempDir(zipFile);  // New method: extract and return temp path
+            directoryName = Paths.get(adjustedPath).getFileName().toString();
+            System.out.println("[TROUBLESHOOT] Directory name pushed to container: " + directoryName);
             this.cppCodeExecution.copyDirectory(adjustedPath, containerName);
         } else if ("java".equalsIgnoreCase(language)) {
             containerName = this.javaContainerManagement.getContainerName(userID);
@@ -121,6 +138,8 @@ public class ContainerController {
         } else if ("debugCpp".equalsIgnoreCase(language)) {
             containerName = this.cppContainerManagement.getContainerName(userID);
             adjustedPath = extractZipToTempDir(zipFile);
+            directoryName = Paths.get(adjustedPath).getFileName().toString();
+            System.out.println("[TROUBLESHOOT] Directory name pushed to container: " + directoryName);
             this.gdbDebugger.copyDirectory(adjustedPath, containerName);
         } else if ("debugJava".equalsIgnoreCase(language)) {
             containerName = this.javaContainerManagement.getContainerName(userID);
@@ -130,10 +149,15 @@ public class ContainerController {
             throw new IllegalArgumentException("Unsupported language: " + language);
         }
 
-        // Cleanup temp dir after copy
+        // Cleanup temp dir after copy (in a finally block or separate thread for safety)
         cleanupTempDir(adjustedPath);
 
-        System.out.println("[TROUBLESHOOT] Copying Container Name: " + containerName + ", Source Path: " + adjustedPath);
+        System.out.println("[TROUBLESHOOT] Copying Container Name: " + containerName + ", Path: " + adjustedPath);
+        return ResponseEntity.ok(
+                Map.of(
+                        "directory",directoryName
+                )
+        );
     }
 
     private String extractZipToTempDir(MultipartFile zipFile) throws IOException {
@@ -144,7 +168,7 @@ public class ContainerController {
         try (ZipInputStream zis = new ZipInputStream(zipFile.getInputStream())) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                // Security: Normalize path to prevent traversal
+                // Security: Normalize path to prevent traversal (e.g., block paths outside tempDir)
                 Path filePath = tempDir.resolve(entry.getName()).normalize();
                 if (!filePath.startsWith(tempDir)) {
                     throw new IOException("Invalid zip entry: potential path traversal - " + entry.getName());
@@ -166,7 +190,7 @@ public class ContainerController {
             throw e;
         }
 
-        return tempDir.toString();  // Pass this path to copyDirectoryContents
+        return tempDir.toString();  // Pass this path to copyDirectory
     }
 
     private void cleanupTempDir(String tempDirPath) {
@@ -186,72 +210,24 @@ public class ContainerController {
         }
     }
 
-    // Copy directory contents to container using docker cp commands
-    private void copyDirectoryContentsToContainer(String sourceDirPath, String containerName, String serviceType) throws IOException, InterruptedException {
-        Path sourceDir = Paths.get(sourceDirPath);
-
-        if (!Files.exists(sourceDir) || !Files.isDirectory(sourceDir)) {
-            throw new IOException("Source directory does not exist: " + sourceDirPath);
-        }
-
-        // Copy each file/subdirectory individually to the container's root working directory
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceDir)) {
-            for (Path entry : stream) {
-                String fileName = entry.getFileName().toString();
-
-                if (Files.isDirectory(entry)) {
-                    // For subdirectories, you might want to copy recursively
-                    copyDirectoryRecursively(entry.toString(), containerName, serviceType);
-                } else {
-                    // Copy individual file to container root
-                    copySingleFileToContainer(entry.toString(), containerName, fileName, serviceType);
-                }
-            }
-        }
-
-        System.out.println("[TROUBLESHOOT] Successfully copied contents of " + sourceDirPath + " to container " + containerName);
-    }
-
-    private void copySingleFileToContainer(String filePath, String containerName, String fileName, String serviceType) throws IOException, InterruptedException {
-        // Use docker cp command to copy individual file
-        String[] command = {
-                "docker", "cp",
-                filePath,  // Source file path on host
-                containerName + ":/" + fileName  // Destination in container root
-        };
-
-        ProcessBuilder pb = new ProcessBuilder(command);
-        Process process = pb.start();
-        int exitCode = process.waitFor();
-
-        if (exitCode != 0) {
-            throw new IOException("Failed to copy file " + fileName + " to container " + containerName + ". Exit code: " + exitCode);
-        }
-
-        System.out.println("[TROUBLESHOOT] Copied file: " + fileName + " to container: " + containerName);
-    }
-
-    private void copyDirectoryRecursively(String dirPath, String containerName, String serviceType) throws IOException, InterruptedException {
-        // This would handle subdirectories if needed
-        // Implementation depends on your specific requirements
-    }
 
     @PostMapping("/compile")
     public void compile(@RequestBody Map<String, String> request) throws IOException, InterruptedException {
         String userID = request.get("userID");
         String sourcePath = request.get("sourcePath");
         String language = request.get("language");
+        String dockerDirectory = request.get("directory");
         System.out.println("[TROUBLESHOOT] Compiling for userID: " + userID + ", Source Path: " + sourcePath + ", Language: " + language);
 
         String adjustedPath="";
         if ("cpp".equalsIgnoreCase(language)) {
             adjustedPath = sourcePath;
-            this.cppCodeExecution.compile(userID, adjustedPath, language);
+            this.cppCodeExecution.compile(userID, adjustedPath, language,dockerDirectory);
         } else if ("java".equalsIgnoreCase(language)) {
             adjustedPath =  sourcePath;
             this.javaCodeExecution.compile(userID, adjustedPath, language);
         } else if("debugCpp".equalsIgnoreCase(language)) {
-            this.gdbDebugger.compile(userID,sourcePath,"cpp");
+            this.gdbDebugger.compile(userID,sourcePath,"cpp",dockerDirectory);
         }else if("debugJava".equalsIgnoreCase(language)) {
             this.jdbDebugger.compile(userID,sourcePath,"java");
         }

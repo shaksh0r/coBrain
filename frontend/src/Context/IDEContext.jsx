@@ -21,6 +21,11 @@ const IDEContext = createContext({
     breakpoints: new Set(),
     setBreakpoints: () => {},
     getFileIcon: () => null,
+    sessions: [],
+    setSessions: () => {},
+    terminalSocketRef: { current: null },
+    debugSocketRef: { current: null },
+    problemsSocketRef: { current: null },
 });
 
 export const useIDEContext = () => useContext(IDEContext);

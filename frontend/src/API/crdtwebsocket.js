@@ -5,7 +5,10 @@ import JSZip from 'jszip';
 export function connectWebSocket(onOperation, onCodeState, onFileResponse, clientIdRef, sessionID) {
     if (!clientIdRef || typeof clientIdRef.current === 'undefined') {
         console.error('clientIdRef is undefined or invalid, generating temporary ID');
-        clientIdRef = { current: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` };
+        setTimeout(() => {
+            return connectWebSocket(onOperation, onCodeState, onFileResponse, clientIdRef, sessionID);
+        }, 1000);
+        return;
     }
 
     const socket = new SockJS('http://localhost:8080/ws');

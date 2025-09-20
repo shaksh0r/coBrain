@@ -6,6 +6,7 @@ import { getContainer, copyCode, compile, run } from '../API/container';
 import DebugWindow from './DebugWindow';
 import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/CodeEditor.css';
+import { sendProblemCmd } from '../API/problemswebsocket';
 
 const CodeEditor = () => {
     const {
@@ -23,6 +24,7 @@ const CodeEditor = () => {
         explorerFiles,
         setExplorerFiles,
         setSelectedFiles,
+        problemsSocketRef,
     } = useIDEContext();
     const editorRef = useRef(null);
     const isProgrammaticChange = useRef(false);
@@ -30,6 +32,7 @@ const CodeEditor = () => {
     const ghostDecorationRef = useRef([]);
     const breakpointsRef = useRef(breakpoints);
     const [isDebugOpen, setIsDebugOpen] = useState(false);
+    const [isDirectory, setDirectory] = useState("");
 
     useEffect(() => {
         const client = connectWebSocket(
@@ -354,7 +357,8 @@ const CodeEditor = () => {
                 <button className="code-editor-action-button margin-right"
                     onClick={async () => {
                         const zipContent = await zipDirectoryContent(explorerFiles, sessionID, clientIdRef);
-                        await copyCode(sessionID, language, zipContent);
+                        const temp = await copyCode(clientIdRef.current, language, zipContent);
+                        setDirectory(temp);
                     }}
                 >
                     Copy Code
@@ -370,7 +374,9 @@ const CodeEditor = () => {
                 </button>
                 <button
                     onClick={async () => {
-                        await compile(clientIdRef, language, '/src/main');
+                        const currentFileName = [...fileNameToFileId.entries()].find(([name, id]) => id === activeFileId)?.[0];
+
+                        await compile(clientIdRef, language, currentFileName,isDirectory);
                     }}
                     className="code-editor-action-button margin-left"
                 >
@@ -383,6 +389,19 @@ const CodeEditor = () => {
                     className="code-editor-action-button margin-left"
                 >
                     Run
+                </button>
+                <button
+                    onClick={() => {
+                        breakpoints.forEach(bpi => {
+                            sendProblemCmd(problemsSocketRef.current, "-break-insert " + bpi);
+                            console.log("Sending: -break-insert " + bpi);
+                        });
+                                            
+                    }}
+                    className="code-editor-action-button margin-left"
+                >
+
+                    Fwd breakpoints
                 </button>
             </div>
             <div className="code-editor-area">

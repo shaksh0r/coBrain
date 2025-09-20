@@ -1,37 +1,35 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { connectTerminal, disconnectTerminal, sendInput } from '../API/iowebsocket';
 import { connectDebug, disconnectDebug, sendDebugCmd } from '../API/debugwebsocket';
-import { connectProblems, disconnectProblems } from '../API/problemswebsocket';
+import { connectProblems, disconnectProblems, sendProblemCmd } from '../API/problemswebsocket';
 import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/Terminal.css';
 
 const Terminal = () => {
-    const { language, clientIdRef,sessionID } = useIDEContext();
+    const { language, clientIdRef, debugSocketRef, problemsSocketRef, terminalSocketRef } = useIDEContext();
     const [activeTab, setActiveTab] = useState('terminal');
 
-    const terminalSocketRef = useRef(null);
     const [terminalOutputLines, setTerminalOutputLines] = useState([]);
     const [terminalCommand, setTerminalCommand] = useState('');
 
-    const debugSocketRef = useRef(null);
     const [debugOutputLines, setDebugOutputLines] = useState([]);
     const [debugCommand, setDebugCommand] = useState('');
 
-    const problemsSocketRef = useRef(null);
     const [problemsOutputLines, setProblemsOutputLines] = useState([]);
+    const [problemCommand, setProblemCommand] = useState('');
 
     useEffect(() => {
-        const terminalSocket = connectTerminal((message) => {
-            setTerminalOutputLines((prev) => [...prev, message]);
-        }, language, clientIdRef.current);
+        // const terminalSocket = connectTerminal((message) => {
+        //     setTerminalOutputLines((prev) => [...prev, message]);
+        // }, language, clientIdRef.current);
 
-        terminalSocketRef.current = terminalSocket;
+        // terminalSocketRef.current = terminalSocket;
 
-        const debugSocket = connectDebug((message) => {
-            setDebugOutputLines((prev) => [...prev, message]);
-        }, language, clientIdRef.current);
+        // const debugSocket = connectDebug((message) => {
+        //     setDebugOutputLines((prev) => [...prev, message]);
+        // }, language, clientIdRef.current);
 
-        debugSocketRef.current = debugSocket;
+        // debugSocketRef.current = debugSocket;
 
         const problemSocket = connectProblems((message) => {
             setProblemsOutputLines((prev) => [...prev, message]);
@@ -40,14 +38,11 @@ const Terminal = () => {
         problemsSocketRef.current = problemSocket;
 
         return () => {
-            disconnectTerminal(terminalSocket);
-            disconnectDebug(debugSocket);
+            // disconnectTerminal(terminalSocket);
+            // disconnectDebug(debugSocket);
             disconnectProblems(problemSocket);
         };
-    }, [language, clientIdRef,sessionID]);
-
-    useEffect(() => {
-    }, [activeTab]);
+    }, [language, clientIdRef]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -59,7 +54,12 @@ const Terminal = () => {
                 setDebugOutputLines((prev) => [...prev, `> ${debugCommand}`]);
                 sendDebugCmd(debugSocketRef.current, debugCommand + '\n');
                 setDebugCommand('');
+            } else if (activeTab === 'problems' && problemCommand.trim()) {
+                setProblemsOutputLines((prev) => [...prev, `> ${problemCommand}`]);
+                sendProblemCmd(problemsSocketRef.current, problemCommand + '\n');
+                setProblemCommand('');
             }
+            
         }
     };
 
@@ -109,6 +109,14 @@ const Terminal = () => {
                                 <div key={index}>{line}</div>
                             ))}
                         </div>
+                        <input
+                            type="text"
+                            value={problemCommand}
+                            onChange={(e) => setProblemCommand(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className="terminal-input"
+                            placeholder=">"
+                        />
                     </>
                 );
             default:

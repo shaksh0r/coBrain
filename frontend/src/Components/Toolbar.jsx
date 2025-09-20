@@ -23,6 +23,7 @@ const Toolbar = () => {
         setFileNameToFileId,
         explorerFiles,
         setExplorerFiles,
+        setSessions,
     } = useIDEContext();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showFileDropdown, setShowFileDropdown] = useState(false);
@@ -111,6 +112,15 @@ const Toolbar = () => {
             const expirationHours = data.expirationHours ? parseInt(data.expirationHours, 10) : 24;
             const response = await sessionApi.createSession(token, data.sessionName, data.description || '', expirationHours);
             console.log('createSession response:', response);
+            const session = {
+                sessionId: response.sessionId,
+                sessionName: response.sessionName,
+                description: response.description,
+                createdAt: response.createdAt,
+                expiresAt: response.expiresAt,
+                active: response.active
+            };
+            setSessions((prev) => [...prev, session]);
             setSessionID(response.sessionId);
             console.log("Session ID:",sessionID);
             setShowCreateModal(false);

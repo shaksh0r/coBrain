@@ -9,6 +9,14 @@ export function sendDebugCmd(socket, input) {
 }
 
 export function connectDebug(onMessage, language, userId) {
+
+	if (!userId) {
+		setTimeout(() => {
+			connectDebug(onMessage, language, userId);
+		}, 1000);
+		return;
+	}
+
 	const wsUrl = `ws://localhost:${PORT_NUMBER}/${language}?userId=${userId}`;
 	const socket = new WebSocket(wsUrl);
 

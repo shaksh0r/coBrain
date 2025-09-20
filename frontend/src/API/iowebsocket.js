@@ -9,6 +9,14 @@ export function sendInput(socket, input) {
 }
 
 export function connectTerminal(onMessage, language, userId) {
+
+	if (!userId) {
+		setTimeout(() => {
+			connectTerminal(onMessage, language, userId);
+		}, 1000);
+		return;
+	}
+
 	const wsUrl = `ws://localhost:${PORT_NUMBER}/${language}?userId=${userId}`;
 	const socket = new WebSocket(wsUrl);
 

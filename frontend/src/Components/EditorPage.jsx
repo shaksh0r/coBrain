@@ -6,7 +6,7 @@ import Terminal from './Terminal.jsx';
 import LeftToolbar from './LeftToolbar';
 import FileExplorerPanel from './FileExplorerPanel.jsx';
 import IDEContext from '../Context/IDEContext.jsx';
-import { languageMap, getFileIcon } from './util/util.js';
+import { getFileIcon } from './util/util.js';
 import '../stylesheets/EditorPage.css';
 
 const EditorPage = () => {
@@ -16,13 +16,19 @@ const EditorPage = () => {
     const [sessionID, setSessionID] = useState('');
     const [fileNameToFileId, setFileNameToFileId] = useState(new Map());
     const [activeFileId, setActiveFileId] = useState(null);
-    const [language, setLanguage] = useState("cpp");
+    const [language, setLanguage] = useState("debugCpp");
 
     const [explorerFiles, setExplorerFiles] = useState([]);
     const [showFileExplorer, setShowFileExplorer] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState(new Set());
 
+    const [sessions, setSessions] = useState([]);
+
     const [breakpoints, setBreakpoints] = useState(new Set());
+
+    const terminalSocketRef = useRef(null);
+    const debugSocketRef = useRef(null);
+    const problemsSocketRef = useRef(null);
 
     useEffect(() => {
         if (clientIdRef.current === null) {
@@ -72,6 +78,11 @@ const EditorPage = () => {
         breakpoints,
         setBreakpoints,
         getFileIcon,
+        sessions,
+        setSessions,
+        terminalSocketRef,
+        debugSocketRef,
+        problemsSocketRef,
     };
 
     const [activeKey, setActiveKey] = useState(null);

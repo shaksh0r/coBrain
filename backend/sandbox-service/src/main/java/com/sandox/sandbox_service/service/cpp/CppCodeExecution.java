@@ -102,7 +102,7 @@ public class CppCodeExecution extends TextWebSocketHandler {
         this.containerAssignment = containerAssignment;
     }
 
-    public void compile(String userID, String className, String language) throws IOException, InterruptedException {
+    public void compile(String userID, String className, String language,String dockerDirectory) throws IOException, InterruptedException {
 
         System.out.println("[TROUBLESHOOT] Starting execute for userID: " + userID);
         System.out.println("[TROUBLESHOOT] Current userToSession map: " + userToSession);
@@ -130,9 +130,10 @@ public class CppCodeExecution extends TextWebSocketHandler {
                 System.out.println("[TROUBLESHOOT] Container found for user " + userID + ": " + containerName);
 
                 // Start the execution process
+                String compilationPath = dockerDirectory + "/" + className;
                 Process process = new ProcessBuilder(
                         "docker", "exec", "-i", containerName,
-                        "g++", className, "-o", "main").start();
+                        "g++", compilationPath, "-o", "main").start();
 
                 BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream()));
