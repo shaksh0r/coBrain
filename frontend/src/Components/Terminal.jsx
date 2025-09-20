@@ -45,8 +45,8 @@ const Terminal = () => {
     }, [language, clientIdRef]);
 
     useEffect(() => {
+        const watchUpdate = [];
         try {
-            const watchUpdate = [];
 
             const reversed = [...problemsOutputLines].reverse();
             reversed.forEach((line, index) => {
@@ -55,7 +55,7 @@ const Terminal = () => {
                 if (type === "locals"){
                     const variables = parsedLine.events[0].variables;
                     Object.keys(variables).forEach((varName) => {
-                        watchUpdate.push({ variable: varName, value: variables[varName].value });
+                        watchUpdate.push({ variable: varName, value: variables[varName] });
                     });
                 }
                 else {
@@ -64,6 +64,7 @@ const Terminal = () => {
                 }
             });
         } catch (error) {
+            setWatches(watchUpdate);
             console.log("Tried to parse nonjson in problems output");
             console.error(error.message);
         }
