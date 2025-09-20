@@ -21,6 +21,7 @@ const EditorPage = () => {
     const [explorerFiles, setExplorerFiles] = useState([]);
     const [showFileExplorer, setShowFileExplorer] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState(new Set());
+    const [watches, setWatches] = useState([]);
 
     const [sessions, setSessions] = useState([]);
 
@@ -83,6 +84,8 @@ const EditorPage = () => {
         terminalSocketRef,
         debugSocketRef,
         problemsSocketRef,
+        watches,
+        setWatches,
     };
 
     const [activeKey, setActiveKey] = useState(null);

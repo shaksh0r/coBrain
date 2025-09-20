@@ -4,7 +4,7 @@ const cors = require('cors');
 const WebSocket = require('ws');
 const app = express();
 
-const PORT_NUMBER = 3010;
+const PORT_NUMBER = 8082;
 let global_session_id = 3;
 
 app.use(cors());
@@ -47,12 +47,7 @@ app.post("/api/auth/login", (req, res) => {
 });
 
 app.get("/api/auth/validate", (req, res) => {
-    const token = req.headers['token'];
-    if (token === "dummy-token") {
-        return res.json({ valid: true });
-    } else {
-        return res.json({ valid: false });
-    }
+    return res.json({ valid: true });
 });
 
 // SESSIONS

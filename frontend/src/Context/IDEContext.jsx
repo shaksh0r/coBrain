@@ -26,6 +26,8 @@ const IDEContext = createContext({
     terminalSocketRef: { current: null },
     debugSocketRef: { current: null },
     problemsSocketRef: { current: null },
+    watches: [],
+    setWatches: () => {},
 });
 
 export const useIDEContext = () => useContext(IDEContext);

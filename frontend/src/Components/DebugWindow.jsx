@@ -1,13 +1,9 @@
 import React, { useState, useRef } from 'react';
+import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/DebugWindow.css';
 
 const DebugWindow = ({ isOpen, onClose }) => {
-    const [watches] = useState([
-        { variable: 'counter', value: '42', type: 'int' },
-        { variable: 'message', value: '"Hello World"', type: 'string' },
-        { variable: 'isActive', value: 'true', type: 'bool' },
-        { variable: 'array', value: '[1, 2, 3]', type: 'array' },
-    ]);
+    const { watches } = useIDEContext();
 
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
@@ -64,7 +60,6 @@ const DebugWindow = ({ isOpen, onClose }) => {
                             <tr>
                                 <th>Variable</th>
                                 <th>Value</th>
-                                <th>Type</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -73,12 +68,11 @@ const DebugWindow = ({ isOpen, onClose }) => {
                                     <tr key={index}>
                                         <td>{watch.variable}</td>
                                         <td>{watch.value}</td>
-                                        <td>{watch.type}</td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="3" className="debug-table-empty">
+                                    <td colSpan="2" className="debug-table-empty">
                                         No watches set. Add variables to watch during debugging.
                                     </td>
                                 </tr>

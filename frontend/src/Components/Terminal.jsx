@@ -6,7 +6,7 @@ import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/Terminal.css';
 
 const Terminal = () => {
-    const { language, clientIdRef, debugSocketRef, problemsSocketRef, terminalSocketRef } = useIDEContext();
+    const { language, clientIdRef, debugSocketRef, problemsSocketRef, terminalSocketRef, setWatches } = useIDEContext();
     const [activeTab, setActiveTab] = useState('terminal');
 
     const [terminalOutputLines, setTerminalOutputLines] = useState([]);
@@ -43,6 +43,32 @@ const Terminal = () => {
             disconnectProblems(problemSocket);
         };
     }, [language, clientIdRef]);
+
+    useEffect(() => {
+        try {
+            const watchUpdate = [];
+
+            const reversed = [...problemsOutputLines].reverse();
+            reversed.forEach((line, index) => {
+                const parsedLine = JSON.parse(line);
+                const type = parsedLine.events[0].type;
+                if (type === "locals"){
+                    const variables = parsedLine.events[0].variables;
+                    Object.keys(variables).forEach((varName) => {
+                        watchUpdate.push({ variable: varName, value: variables[varName].value });
+                    });
+                }
+                else {
+                    setWatches(watchUpdate);
+                    return;
+                }
+            });
+        } catch (error) {
+            console.log("Tried to parse nonjson in problems output");
+            console.error(error.message);
+        }
+        
+    }, [problemsOutputLines]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
