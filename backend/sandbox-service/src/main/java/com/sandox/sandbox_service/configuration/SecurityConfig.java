@@ -22,7 +22,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/getContainer/**", "/copy",
-                                "/cpp/**", "/debugCpp/**", "/java/**", "/debugJava/**").permitAll() // Allow WebSocket endpoints
+                                "/cpp/**", "/debugCpp/**", "/java/**", "/debugJava/**","/compile","/run").permitAll() // Allow WebSocket endpoints
                         .anyRequest().authenticated()
                 );
         return http.build();

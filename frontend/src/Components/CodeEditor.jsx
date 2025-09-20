@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { Range, editor as EditorNamespace } from 'monaco-editor/esm/vs/editor/editor.api';
 import { connectWebSocket, disconnectWebSocket, sendCode, requestDocumentState, getAllFiles, zipDirectoryContent } from '../API/crdtwebsocket';
-import { getContainer, copyCode } from '../API/container';
+import { getContainer, copyCode, compile, run } from '../API/container';
 import DebugWindow from './DebugWindow';
 import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/CodeEditor.css';
@@ -348,12 +348,12 @@ const CodeEditor = () => {
                     AutoType Demo
                 </button>
                 <button className="code-editor-action-button margin-right"
-                    onClick={() => getContainer(sessionID, language)}>
+                    onClick={() => getContainer(clientIdRef.current, language)}>
                         getContainer
                 </button>
                 <button className="code-editor-action-button margin-right"
                     onClick={async () => {
-                        const zipContent = await zipDirectoryContent(explorerFiles, sessionID, clientIdRef, 'base64');
+                        const zipContent = await zipDirectoryContent(explorerFiles, sessionID, clientIdRef);
                         await copyCode(sessionID, language, zipContent);
                     }}
                 >
@@ -367,6 +367,22 @@ const CodeEditor = () => {
                     className="code-editor-action-button margin-left"
                 >
                     Get All Files
+                </button>
+                <button
+                    onClick={async () => {
+                        await compile(clientIdRef, language, '/src/main');
+                    }}
+                    className="code-editor-action-button margin-left"
+                >
+                    Compile
+                </button>
+                <button
+                    onClick={async () => {
+                        await run(clientIdRef, language, 'test.cpp');
+                    }}
+                    className="code-editor-action-button margin-left"
+                >
+                    Run
                 </button>
             </div>
             <div className="code-editor-area">

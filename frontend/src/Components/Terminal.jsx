@@ -6,7 +6,7 @@ import { useIDEContext } from '../Context/IDEContext';
 import '../stylesheets/Terminal.css';
 
 const Terminal = () => {
-    const { language, clientIdRef } = useIDEContext();
+    const { language, clientIdRef,sessionID } = useIDEContext();
     const [activeTab, setActiveTab] = useState('terminal');
 
     const terminalSocketRef = useRef(null);
@@ -44,7 +44,7 @@ const Terminal = () => {
             disconnectDebug(debugSocket);
             disconnectProblems(problemSocket);
         };
-    }, [language, clientIdRef]);
+    }, [language, clientIdRef,sessionID]);
 
     useEffect(() => {
     }, [activeTab]);

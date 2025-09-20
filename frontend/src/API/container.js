@@ -13,31 +13,35 @@ export async function getContainer(sessionID, language) {
 
 export async function copyCode(sessionID, language, zipContent) {
     try {
-        await fetch(`http://localhost:${PORT_NUMBER}/copy`, {
+        const formData = new FormData();
+        formData.append("userID", sessionID); // Match backend's expected parameter name
+        formData.append("language", language);
+        formData.append("directoryContent", zipContent); // zipContent should be a File or Blob
+
+        const response = await fetch(`http://localhost:${PORT_NUMBER}/copy`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                "sessionID" : sessionID,
-                "directoryPath": "/src/main",
-                "directoryContent" : zipContent,
-                "language" : language
-            })
+            body: formData // No need to set Content-Type; browser sets it automatically for FormData
         });
-        
-        //const jsonData = await response.json();
-        //console.log(jsonData);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // Optionally handle response
+        // const jsonData = await response.json();
+        // console.log(jsonData);
     } catch (error) {
-        console.error(error.message);
+        console.error("Error in copyCode:", error.message);
     }
-};
+}
 
 export async function compile(clientIdRef, language, sourcePath) {
     try {
-        const response = await fetch(`http://localhost:${PORT_NUMBER}/api/compile`, {
+        const response = await fetch(`http://localhost:${PORT_NUMBER}/compile`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: clientIdRef.current,
+                userID: clientIdRef.current,
                 language,
                 sourcePath
             })
@@ -51,11 +55,11 @@ export async function compile(clientIdRef, language, sourcePath) {
 
 export async function run(clientIdRef, language, className = ''){
     try {
-        const response = await fetch(`http://localhost:${PORT_NUMBER}/api/run`, {
+        const response = await fetch(`http://localhost:${PORT_NUMBER}/run`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: clientIdRef.current,
+                userID: clientIdRef.current,
                 language,
                 className
             })
